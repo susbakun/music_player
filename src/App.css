@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+body {
+    background-color: #141414;
+    color: white;
+}
+
+button {
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 80%;
+}
+
+aside {
+    background-color: #181818;
+}
