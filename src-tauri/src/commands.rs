@@ -3,7 +3,7 @@ use std::{ffi::OsStr, fs::File};
 use std::fs;
 use std::path::Path;
 use rodio::{Decoder, OutputStreamBuilder, Sink};
-use tauri::{Manager, Window};
+use tauri::{Emitter, Manager, Window};
 
 use crate::AppData;
 
@@ -29,23 +29,37 @@ pub fn read_songs() -> Vec<String>{
 
 #[tauri::command(rename_all = "snake_case")]
 pub fn play_song(song_name: String, window: Window){
+
     std::thread::spawn(move|| {
+        let app_handle = window.app_handle();
+        let state = app_handle.state::<Mutex<AppData>>();
+
+        let mut state = state.lock().unwrap();
+
+
+        // resume the current song (if there's any)
+        if let Some(current_song_name) = &state.current_song_name {
+            if *current_song_name == song_name {
+                match &state.sink {
+                    Some(sink) => sink.play(),
+                    _ => ()
+                }
+                return
+            }
+        }
+        
         let stream_handle = OutputStreamBuilder::open_default_stream()
         .expect("open default audio strem");
-
+    
         let sink = Sink::connect_new(&stream_handle.mixer());
-
+    
         let file = File::open(format!("/Users/amir/Downloads/{}", song_name))
             .expect("couldn't open the file");
         let source = Decoder::try_from(file)
             .expect("couldn't decode the file");
 
+
         sink.append(source);
-
-        let app_handle = window.app_handle();
-        let state = app_handle.state::<Mutex<AppData>>();
-
-        let mut state = state.lock().unwrap();
         
         let sink = Arc::new(sink);
 
@@ -55,9 +69,12 @@ pub fn play_song(song_name: String, window: Window){
         }
         
         state.sink = Some(Arc::clone(&sink));
-
+        state.current_song_name = Some(song_name.clone());
         drop(state);
+
         sink.sleep_until_end();
+        app_handle.emit("finished-song", song_name.clone())
+            .unwrap();
     });
     
 }

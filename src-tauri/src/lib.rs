@@ -1,4 +1,4 @@
-use rodio::{OutputStream, Sink};
+use rodio::Sink;
 use tauri::Manager;
 use std::sync::{Arc, Mutex};
 
@@ -7,6 +7,7 @@ mod commands;
 #[derive(Default)]
 struct AppData {
     pub sink: Option<Arc<Sink>>,
+    pub current_song_name: Option<String>
 }
 
 

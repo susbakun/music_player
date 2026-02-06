@@ -1,8 +1,9 @@
 import { CurrentSong } from "@/shared/types";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { ComponentProps, useEffect, useState } from "react";
 import {IoPlay, IoPause} from "react-icons/io5";
-import { MdOutlineSkipNext, MdOutlineSkipPrevious } from "react-icons/md";
+import { Player } from "./Player";
 
 
 function RootLayout({children, ...props}: ComponentProps<'main'>){
@@ -45,22 +46,101 @@ function AppContent(){
         setSongs(res)
     }
 
-    const playSong = async (song_name: string) => {
+    const playSong = (song_name: string) => {
         setCurrentSong({song_name, is_playing: true})
 
         invoke("play_song", { song_name })
     }
 
-    const pauseSong = async(song_name: string) => {
+    const pauseSong = (song_name: string) => {
         setCurrentSong({song_name, is_playing: false})
 
         invoke("pause_song", { song_name })
     }
 
+    const playNext = () => {
+        if (!currentSong) {
+            return
+        }
+
+        let currentSongIdx = songs.findIndex((song_name) =>
+             song_name === currentSong.song_name)
+        let lastSongIdx = songs.length - 1;
+        
+        let nextSong;
+
+        if (currentSongIdx === lastSongIdx) {
+            nextSong = songs[0];
+        } else {
+            nextSong = songs[currentSongIdx + 1]
+        }
+
+        playSong(nextSong)
+    }
+
+    const playPrev = () => {
+        if (!currentSong) {
+            return
+        }
+
+        let currentSongIdx = songs.findIndex((song_name) =>
+             song_name === currentSong.song_name)
+        let lastSongIdx = songs.length - 1;
+        
+        let prevSong;
+
+        if (currentSongIdx === 0) {
+            prevSong = songs[lastSongIdx];
+        } else {
+            prevSong = songs[currentSongIdx - 1]
+        }
+
+        playSong(prevSong)
+    }
+
+    const getPlayPauseButton = (song_name: string, is_player?: boolean) => {
+        if (currentSong && 
+            currentSong.is_playing && 
+            currentSong.song_name === song_name) {
+            return (
+                <button 
+                    className={is_player ? 
+                        "bg-black/80 rounded-full px-2 py-2" : 
+                        ""}
+                    onClick={() => pauseSong(song_name)}>
+                        <IoPause />
+                </button> 
+            )
+        } else {
+            return (
+                <button
+                    className={is_player ? 
+                        "bg-black/80 rounded-full px-2 py-2" : 
+                        ""}
+                    onClick={() => playSong(song_name)}>
+                        <IoPlay />
+                </button>
+            )
+        }
+}
 
     useEffect(() => {
         getSongs()
     }, [])
+
+    useEffect(() => {
+        const unlisten = listen<string>('finished-song', (event) => {
+            let songName = event.payload;
+
+            if (currentSong && currentSong.song_name !== songName) return
+
+            playNext()
+        })
+
+        return () => {
+            unlisten.then((fn) => fn())
+        }
+    }, [currentSong])
 
     return(
         <div className="h-full flex flex-col w-full">
@@ -68,40 +148,20 @@ function AppContent(){
             overflow-x-clip h-[80%] flex flex-col gap-4">
                 <h2>Songs:</h2>
                 <ul className="flex flex-col gap-2">
-                    {songs.map((song) => (
-                        <li className="flex items-center justify-between">
-                            <h3>{song}</h3>
-                            <button onClick={() => playSong(song)}>
-                                <IoPlay />
-                            </button>
+                    {songs.map((song_name) => (
+                        <li key={song_name} className="flex items-center justify-between">
+                            <h3>{song_name}</h3>
+                            {getPlayPauseButton(song_name)}
                         </li>
                     ))}
                 </ul>
             </div>
-        {currentSong && (
-            <div className="h-[20%] flex bg-black/50 rounded-lg py-2 flex-col gap-4 mr-4">
-                <p className="text-center">{currentSong.song_name}</p>
-                <div className="flex justify-center w-full h-fit gap-2">
-                    <button className="bg-black/80 rounded-full px-2 py-2">
-                        <MdOutlineSkipPrevious />
-                    </button>
-                    {currentSong.is_playing ? 
-                        <button className="bg-black/80 rounded-full px-2 py-2"
-                            onClick={() => pauseSong(currentSong.song_name)}>
-                            <IoPause />
-                        </button> 
-                    : 
-                        <button className="bg-black/80 rounded-full px-2 py-2"
-                            onClick={() => playSong(currentSong.song_name)}>
-                            <IoPlay />
-                        </button>
-                    }
-                    <button className="bg-black/80 rounded-full px-2 py-2">
-                        <MdOutlineSkipNext />
-                    </button>
-                </div>
-            </div>
-        )}
+            <Player
+                currentSong={currentSong}
+                playNext={playNext}
+                playPrev={playPrev}
+                getPlayPauseButton={getPlayPauseButton}
+            />
         </div>
     )
 }
