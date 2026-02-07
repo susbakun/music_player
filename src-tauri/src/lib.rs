@@ -1,8 +1,11 @@
 use rodio::Sink;
 use tauri::Manager;
+#[cfg(target_os = "macos")]
+use window_vibrancy::{NSVisualEffectMaterial, apply_vibrancy};
 use std::sync::{Arc, Mutex};
 
 mod commands;
+mod prelude;
 
 #[derive(Default)]
 struct AppData {
@@ -15,12 +18,17 @@ struct AppData {
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
+            let window = app.get_webview_window("main").unwrap();
+            #[cfg(target_os = "macos")]
+            apply_vibrancy(&window, NSVisualEffectMaterial::HudWindow, None, None)
+                .expect("Unsupported platform! 'apply_vibrancy' is only supported on macOS");
+
             app.manage(Mutex::new(AppData::default()));
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![commands::read_songs, 
-            commands::play_song, commands::pause_song])
+            commands::play_song, commands::pause_song, commands::get_song_position])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

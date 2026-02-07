@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
-body {
-    background-color: #141414;
+html, body {
+    background: transparent;
     color: white;
 }
+
 
 button {
     cursor: pointer;
@@ -15,4 +16,5 @@ button:hover {
 
 aside {
     background-color: #181818;
+    opacity: 80%;
 }

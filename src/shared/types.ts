@@ -1,4 +1,5 @@
-export type CurrentSong = {
+export type SongType = {
     song_name: string,
-    is_playing: boolean
+    is_playing: boolean,
+    duration: number
 }

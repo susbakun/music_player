@@ -2,14 +2,16 @@ use std::sync::{Arc, Mutex};
 use std::{ffi::OsStr, fs::File};
 use std::fs;
 use std::path::Path;
-use rodio::{Decoder, OutputStreamBuilder, Sink};
+use rodio::{Decoder, OutputStreamBuilder, Sink, Source};
 use tauri::{Emitter, Manager, Window};
 
 use crate::AppData;
+use crate::prelude::*;
+
 
 
 #[tauri::command(rename_all = "snake_case")]
-pub fn read_songs() -> Vec<String>{
+pub fn read_songs() -> Vec<ReadSong>{
     fs::read_dir("/Users/amir/Downloads")
     .expect("Failed to read the read the directory")
     .map(|res| res.unwrap())
@@ -20,9 +22,25 @@ pub fn read_songs() -> Vec<String>{
             .and_then(OsStr::to_str)
             .unwrap_or_default();
 
-        file_extenstion == "wav" || file_extenstion == "mp3" || file_extenstion == "flac"
+        SUPPORTED_FORMATS.contains(&file_extenstion)
     })
-    .map(|file_name| file_name.into_string().unwrap())
+    .map(|file_name| {
+        let file_name = file_name.to_str().unwrap();
+
+        let file = File::open(format!("/Users/amir/Downloads/{}", file_name))
+            .expect("couldn't open the file");
+        let source = Decoder::try_from(file)
+            .expect("couldn't decode the file");
+
+        let duration_in_secs = source.total_duration()
+            .unwrap()
+            .as_secs();
+
+        ReadSong {
+            song_name: file_name.to_string(),
+            duration: duration_in_secs
+        }
+    })
     .collect()
 }
 
@@ -55,14 +73,13 @@ pub fn play_song(song_name: String, window: Window){
     
         let file = File::open(format!("/Users/amir/Downloads/{}", song_name))
             .expect("couldn't open the file");
+
         let source = Decoder::try_from(file)
             .expect("couldn't decode the file");
-
 
         sink.append(source);
         
         let sink = Arc::new(sink);
-
         
         if let Some(state_sink) = &state.sink {
             state_sink.clear()
@@ -73,6 +90,7 @@ pub fn play_song(song_name: String, window: Window){
         drop(state);
 
         sink.sleep_until_end();
+
         app_handle.emit("finished-song", song_name.clone())
             .unwrap();
     });
@@ -92,4 +110,20 @@ pub fn pause_song(window: Window) {
             sink.pause();
         }
     });
+}
+
+#[tauri::command(rename_all = "snake_case")]
+pub fn get_song_position(window: Window) -> u64 {
+    std::thread::spawn(move || {
+        let app_handle = window.app_handle();
+        let state = app_handle.state::<Mutex<AppData>>();
+
+        let state = state.lock().unwrap();
+
+        if let Some(sink) = &state.sink {
+            return sink.get_pos().as_secs()
+        }
+        
+        0
+    }).join().unwrap()
 }
