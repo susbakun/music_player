@@ -1,0 +1,1 @@
+pub const SUPPORTED_FORMATS: [&str; 3] = ["wav", "mp3", "flac"];

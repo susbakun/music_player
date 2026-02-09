@@ -1,9 +1,5 @@
-pub const SUPPORTED_FORMATS: [&str; 3] = ["wav", "mp3", "flac"];
+mod constants;
+mod types;
 
-#[derive(serde::Serialize)]
-pub struct ReadSong {
-    pub song_name: String,
-    pub song_path: String,
-    pub duration: u64,
-    pub is_playing: bool
-}
+pub use constants::SUPPORTED_FORMATS;
+pub use types::ReadSong;

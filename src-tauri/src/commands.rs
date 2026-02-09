@@ -1,4 +1,4 @@
-use rodio::{Decoder, OutputStreamBuilder, Sink, Source};
+use rodio::{Decoder, OutputStreamBuilder, Sink};
 use walkdir::WalkDir;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
@@ -24,34 +24,7 @@ pub fn read_songs(dir: String) -> Vec<ReadSong> {
 
             SUPPORTED_FORMATS.contains(&file_extenstion)
         })
-        .map(|file_entry| {
-            let path = file_entry.path();
-
-            let file = File::open(&path)
-                .expect("couldn't open the file");
-
-            let file_name = path.file_name()
-                .unwrap();
-            let song_name = file_name.to_str()
-                .expect("failed to convert OsString to &str")
-                .to_string();
-    
-            let source = Decoder::try_from(file)
-                .expect("couldn't decode the file");
-            let duration_in_secs = source.total_duration()
-                .unwrap()
-                .as_secs();
-
-            let file_path = path.to_string_lossy()
-                .to_string();
-        
-            ReadSong {
-                song_name,
-                song_path: file_path,
-                duration: duration_in_secs,
-                is_playing: false
-            }
-        })
+        .map(ReadSong::from_file_entry)
         .collect()
 }
 
