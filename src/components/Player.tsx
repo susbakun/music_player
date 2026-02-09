@@ -60,8 +60,10 @@ export const Player = ({
                 <div className="w-full px-2 flex gap-2 items-center">
                     <p className="text-sm text-white/80">{formatted_progress}</p>
                     <div className="h-1 w-full bg-white/20 rounded-full overflow-hidden">
-                        <div style={{width: `${progress * 100 / duration}%`}}
-                        className={`h-full bg-white/80 rounded-full`} />
+                        <div
+                            style={{ width: duration ? `${(progress * 100) / duration}%` : "0%" }}
+                            className="h-full bg-white/80 rounded-full transition-[width] duration-75 ease-linear"
+                        />
                     </div>
                     <p className="text-sm text-white/80">{formatted_duration}</p>
                 </div>
