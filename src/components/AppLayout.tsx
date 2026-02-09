@@ -174,8 +174,8 @@ function AppContent(){
     return(
         <div className="h-full flex flex-col w-full">
             <div className="flex-1 px-4 py-8 overflow-y-auto
-            overflow-x-clip h-[80%] flex flex-col gap-4">
-                <h2>Songs:</h2>
+            overflow-x-clip h-[80%] flex flex-col gap-6">
+                <h2 className="text-2xl font-bold">Songs</h2>
                 <ul className="flex flex-col gap-2">
                     {songs.map((song) => (
                         <li key={song.song_name} className="flex items-center justify-between">

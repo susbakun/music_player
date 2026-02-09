@@ -1,20 +1,27 @@
 @import "tailwindcss";
 
-html, body {
-    background: transparent;
-    color: white;
-}
+@layer {
+    html, body {
+        @apply bg-transparent text-white h-full;
+    }
 
+    button {
+        @apply cursor-pointer hover:opacity-80;
+    }
 
-button {
-    cursor: pointer;
-}
+    aside {
+        @apply bg-[#181818] opacity-80;
+    }
 
-button:hover {
-    opacity: 80%;
-}
-
-aside {
-    background-color: #181818;
-    opacity: 80%;
+    ::-webkit-scrollbar {
+        @apply w-[10px] rounded-sm;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+    @apply bg-[#555] z-30 rounded-md;
+    }
+    
+    ::-webkit-scrollbar-track {
+    @apply bg-[#555]/10;
+    }
 }

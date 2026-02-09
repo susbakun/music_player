@@ -32,7 +32,7 @@ export const Player = ({
     useEffect(() => {
         let intervalId = setInterval(() => {
             get_song_position()
-        }, 1000)
+        }, 100)
         
         return () => {
             clearInterval(intervalId)

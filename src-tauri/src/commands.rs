@@ -1,5 +1,5 @@
 use rodio::{Decoder, OutputStreamBuilder, Sink, Source};
-use std::fs;
+use walkdir::WalkDir;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::{ffi::OsStr, fs::File};
@@ -11,8 +11,9 @@ use crate::AppData;
 #[tauri::command(rename_all = "snake_case")]
 pub fn read_songs(dir: String) -> Vec<ReadSong> {
     let path = PathBuf::from(&dir);
-    fs::read_dir(&path)
-        .expect("Failed to read the read the directory")
+    WalkDir::new(&path)
+        .max_depth(4)
+        .into_iter()
         .map(|res| res.unwrap())
         .filter(|file_entry| {
             let file_name = file_entry.file_name();
