@@ -1,9 +1,12 @@
-import {  SongType } from "@/shared/types";
+import { ComponentProps, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { ComponentProps, useEffect, useState } from "react";
+import { open } from '@tauri-apps/plugin-dialog';
+import {  SongType } from "@/shared/types";
 import {IoPlay, IoPause} from "react-icons/io5";
 import { Player } from "./Player";
+
+
 
 
 function RootLayout({children, ...props}: ComponentProps<'main'>){
@@ -38,26 +41,46 @@ function AppSideBar(){
 
 
 function AppContent(){
-    const [songs, setSongs] = useState<SongType[]>([]);
-    const [currentSong, setCurrentSong] = useState<SongType | null>(null);
+    const [songs, setSongs] = useState<SongType[]>([])
+    const [currentSong, setCurrentSong] = useState<SongType | null>(null)
 
-    const getSongs = async () => {
-        const res = await invoke<SongType[]>("read_songs");
+    const selectDirectory = async () => {
+        let selectedDir = localStorage.getItem("selected-dir")
+        if (selectedDir) {
+            return selectedDir
+        } else {
+            selectedDir = await open({
+                multiple: false,
+                directory: true,
+                defaultPath: "/Users/amir/Downloads/",
+                title: "choose directory to scan"
+            })
+
+            selectedDir = selectedDir || "/Users/amir/Downloads/"
+
+            localStorage.setItem("selected-dir", selectedDir)
+    
+            return selectedDir
+        }
+    }
+
+    const getSongs = async (dir: string) => {
+        const res = await invoke<SongType[]>("read_songs", { dir });
         setSongs(res)
     }
 
     const playSong = (song: SongType) => {
         setCurrentSong({...song, is_playing: true})
 
-        const song_name = song.song_name;
-        invoke("play_song", { song_name })
+        const song_path = song.song_path;
+        invoke("play_song", { song_path })
     }
 
     const pauseSong = (song: SongType) => {
         setCurrentSong({...song, is_playing: false})
 
-        const song_name = song.song_name;
-        invoke("pause_song", { song_name })
+        const song_path = song.song_path;
+        invoke("pause_song", { song_path })
     }
 
     const playNext = () => {
@@ -127,7 +150,9 @@ function AppContent(){
 }
 
     useEffect(() => {
-        getSongs()
+        selectDirectory().then((dir) => {
+            getSongs(dir)
+        })
     }, [])
 
     useEffect(() => {
@@ -136,6 +161,7 @@ function AppContent(){
 
             if (currentSong && 
                 currentSong.song_name !== songName) return
+
 
             playNext()
         })
