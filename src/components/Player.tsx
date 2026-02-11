@@ -1,14 +1,14 @@
-import { SongType } from "@/shared/types"
+import { CurrentSongType, ReadSongType } from "@/shared/types"
 import { invoke } from "@tauri-apps/api/core";
 import { JSX, useEffect, useState } from "react";
 import { MdOutlineSkipNext, MdOutlineSkipPrevious } from "react-icons/md";
 
 
 type PlayerProps = {
-    currentSong: SongType | null
+    currentSong: CurrentSongType | null
     playPrev: () => void,
     playNext: () => void,
-    getPlayPauseButton: (song: SongType, is_player?: boolean) 
+    getPlayPauseButton: (song: ReadSongType, is_player?: boolean) 
         => JSX.Element
 }
 

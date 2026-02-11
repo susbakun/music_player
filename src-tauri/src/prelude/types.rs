@@ -7,7 +7,6 @@ pub struct ReadSong {
     pub song_name: String,
     pub song_path: String,
     pub duration: u64,
-    pub is_playing: bool
 }
 
 
@@ -37,7 +36,6 @@ impl ReadSong {
                 song_name,
                 song_path: file_path,
                 duration: duration_in_secs,
-                is_playing: false
             }
     }
 }

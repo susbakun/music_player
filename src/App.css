@@ -6,7 +6,7 @@
     }
 
     button {
-        @apply cursor-pointer hover:opacity-80;
+        @apply cursor-pointer hover:opacity-80 select-none;
     }
 
     aside {
@@ -23,5 +23,9 @@
     
     ::-webkit-scrollbar-track {
     @apply bg-[#555]/10;
+    }
+
+    p, h1, h2, h3, h4, h5, h6 {
+        @apply cursor-default select-none;
     }
 }
