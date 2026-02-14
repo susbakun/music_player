@@ -38,7 +38,6 @@ export const Player = ({
         const position = Math.floor(fraction * duration);
 
         invoke("change_song_position", { position })
-        // setProgress(Math.floor(fraction * duration))
     }
 
     useEffect(() => {

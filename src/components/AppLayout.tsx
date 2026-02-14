@@ -6,6 +6,7 @@ import {  ReadSongType, CurrentSongType, View } from "@/shared/types";
 import {IoPlay, IoPause} from "react-icons/io5";
 import { Player } from "./Player";
 import { ActionButton } from "./ActionButton";
+import { Song } from "./Song";
 
 
 
@@ -214,13 +215,11 @@ function AppContent(){
                 <h2 className="text-2xl font-bold">Songs</h2>
                 <ul className="flex flex-col gap-2">
                     {songs.map((song) => (
-                        <li key={song.song_name}
-                            className="flex items-center justify-between
-                            hover:bg-white/5 rounded-xl px-2 py-1"
-                            onDoubleClick={() => togglePlay(song)}>
-                            <h3>{song.song_name}</h3>
-                            {getPlayPauseButton(song)}
-                        </li>
+                        <Song
+                            song={song}
+                            togglePlay={togglePlay}
+                            getPlayPauseButton={getPlayPauseButton}
+                        />
                     ))}
                 </ul>
             </div>
