@@ -2,6 +2,8 @@ use rodio::{Decoder, OutputStreamBuilder, Sink};
 use walkdir::WalkDir;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration;
 use std::{ffi::OsStr, fs::File};
 use tauri::{Emitter, Manager, Window};
 
@@ -113,4 +115,21 @@ pub fn get_song_position(window: Window) -> u64 {
     })
     .join()
     .unwrap()
+}
+
+#[tauri::command(rename_all = "snake_case")]
+pub fn change_song_position(window: Window, position: u64) {
+    thread::spawn(move || {
+        let app_handle = window.app_handle();
+        let state = app_handle.state::<Mutex<AppData>>();
+
+        let state = state.lock().unwrap();
+
+        println!("{position}");
+
+        if let Some(sink) = &state.sink {
+            sink.try_seek(Duration::from_secs(position))
+                .expect("couldn't seek the song")
+        }
+    });
 }

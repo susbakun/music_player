@@ -23,15 +23,27 @@ export const Player = ({
     let formatted_duration = `${Math.floor(duration / 60)}:${String(duration % 60).padStart(2, "0")}`;
     let formatted_progress = `${Math.floor(progress / 60)}:${String(progress % 60).padStart(2, "0")}`;
 
-    const get_song_position = async () => {
+    const getSongPosition = async () => {
         let position = await invoke<number>("get_song_position");
 
         setProgress(position)
     }
 
+
+    const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!duration) return
+        const bar = e.currentTarget
+        const rect = bar.getBoundingClientRect()
+        const fraction = Math.max(0, (e.clientX - rect.left) / rect.width)
+        const position = Math.floor(fraction * duration);
+
+        invoke("change_song_position", { position })
+        // setProgress(Math.floor(fraction * duration))
+    }
+
     useEffect(() => {
         let intervalId = setInterval(() => {
-            get_song_position()
+            getSongPosition()
         }, 100)
         
         return () => {
@@ -59,10 +71,23 @@ export const Player = ({
                 </div>
                 <div className="w-full px-2 flex gap-2 items-center">
                     <p className="text-sm text-white/80">{formatted_progress}</p>
-                    <div className="h-1 w-full bg-white/20 rounded-full overflow-hidden">
+                    <div
+                        role="progressbar"
+                        aria-valuenow={progress}
+                        aria-valuemin={0}
+                        aria-valuemax={duration}
+                        className="h-[6px] w-full bg-white/20 rounded-full
+                        cursor-pointer flex items-center group"
+                        onClick={handleProgressBarClick}
+                    >
                         <div
                             style={{ width: duration ? `${(progress * 100) / duration}%` : "0%" }}
-                            className="h-full bg-white/80 rounded-full transition-[width] duration-75 ease-linear"
+                            className="h-full bg-white/80 rounded-full transition-[width] 
+                            duration-75 ease-linear pointer-events-none -mr-1"
+                        />
+                        <div
+                            className="w-4 h-0 group-hover:h-4
+                            rounded-full bg-white transition-all duration-75 ease-linear"
                         />
                     </div>
                     <p className="text-sm text-white/80">{formatted_duration}</p>

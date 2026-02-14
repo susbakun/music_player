@@ -9,9 +9,8 @@ A music player written in Tauri, React and Rust.
 - Transparent window
 - Dialog for choosing the directory
 - Scanning a directory up to 4 subdirectories
+- You can change the position of the song.
 
 ## TODOS
 - [ ] Playlists
 - [ ] Queues
-- [ ] Playback control
-- [x] Better Scanning
