@@ -1,10 +1,11 @@
-use std::fs::File;
+use std::{fs::File, io::Read};
+use lofty::{error::LoftyError, file::TaggedFileExt, read_from_path};
 use rodio::{Decoder, Source};
 use walkdir::DirEntry;
-
 #[derive(serde::Serialize)]
 pub struct ReadSong {
     pub song_name: String,
+    pub icon: Vec<u8>,
     pub song_path: String,
     pub duration: u64,
 }
@@ -31,11 +32,32 @@ impl ReadSong {
 
             let file_path = path.to_string_lossy()
                 .to_string();
+
+            
+            let icon = Self::extract_icon(&file_path)
+                .expect("failed reading the picture");
         
             Self {
                 song_name,
                 song_path: file_path,
                 duration: duration_in_secs,
+                icon: icon
             }
+    }
+
+    fn extract_icon(file_path: &String) -> Result<Vec<u8>, LoftyError> {
+        let file = read_from_path(file_path)?;
+        let tags = file.tags();
+
+        if let Some(tag) = tags.first() {
+            if let Some(picture) = tag.pictures().first() {
+                return Ok(picture.data().into())
+            }
+        }
+
+        let mut file = File::open("./icons/music_cover.png").unwrap();
+        let mut buffer = Vec::new();
+        file.read_to_end(&mut buffer).unwrap();
+        return Ok(buffer)
     }
 }

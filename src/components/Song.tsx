@@ -28,7 +28,6 @@ export const Song = ({
         menu.popup();
     }
 
-
   return (
     <li key={song.song_name}
         onContextMenu={handleContextMenu}

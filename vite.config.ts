@@ -14,7 +14,8 @@ export default defineConfig(async () => ({
   resolve: {
     alias: {
       "@/components" : resolve("src/components"),
-      "@/utils" : resolve("src/utils")
+      "@/utils" : resolve("src/utils"),
+      "@/shared": resolve("src/shared")
     }
   },
 

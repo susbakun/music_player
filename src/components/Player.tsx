@@ -1,4 +1,5 @@
 import { CurrentSongType, ReadSongType } from "@/shared/types"
+import { iconBytesToBlobUrl } from "@/utils";
 import { invoke } from "@tauri-apps/api/core";
 import { JSX, useEffect, useState } from "react";
 import { MdOutlineSkipNext, MdOutlineSkipPrevious } from "react-icons/md";
@@ -17,7 +18,9 @@ export const Player = ({
     playNext, 
     playPrev, 
     getPlayPauseButton}: PlayerProps) => {
-    let [progress, setProgress] = useState(0);
+    const [progress, setProgress] = useState(0);
+    const [iconUrl, setIconUrl] = useState<string | null>(null)
+
 
     let duration = currentSong?.duration || 0
     let formatted_duration = `${Math.floor(duration / 60)}:${String(duration % 60).padStart(2, "0")}`;
@@ -41,6 +44,15 @@ export const Player = ({
     }
 
     useEffect(() => {
+        if (!currentSong) return
+        const url = iconBytesToBlobUrl(currentSong.icon)
+        setIconUrl(url)
+        return () => {
+            if (url) URL.revokeObjectURL(url)
+        }
+    }, [currentSong?.icon])
+
+    useEffect(() => {
         let intervalId = setInterval(() => {
             getSongPosition()
         }, 100)
@@ -53,20 +65,28 @@ export const Player = ({
 
     if (currentSong)
         return (
-            <div className="h-[25%] flex bg-black/50 rounded-lg py-4
-                flex-col gap-4 mr-4">
-                <p className="text-center">{currentSong.song_name}</p>
-                <div className="flex justify-center w-full h-fit gap-2">
-                    <button className="bg-black/80 rounded-full px-2 py-2"
-                        onClick={playPrev}
-                    >
-                        <MdOutlineSkipPrevious />
-                    </button>
-                    {getPlayPauseButton(currentSong, true)}
-                    <button className="bg-black/80 rounded-full px-2 py-2"
-                        onClick={playNext}>
-                        <MdOutlineSkipNext />
-                    </button>
+            <div className="h-[35%] flex bg-black/50 rounded-lg py-4
+                flex-col mr-4 items-center justify-between">
+                <div className="flex flex-col gap-4 items-center">
+                    <p className="text-center">{currentSong.song_name}</p>
+                    {iconUrl && (
+                        <img
+                            src={iconUrl}
+                            className="w-16 h-16 xl:w-44 xl:h-44 rounded object-cover shrink-0"
+                        />
+                    )}
+                    <div className="flex justify-center w-full h-fit gap-2">
+                        <button className="bg-black/80 rounded-full px-2 py-2"
+                            onClick={playPrev}
+                        >
+                            <MdOutlineSkipPrevious />
+                        </button>
+                        {getPlayPauseButton(currentSong, true)}
+                        <button className="bg-black/80 rounded-full px-2 py-2"
+                            onClick={playNext}>
+                            <MdOutlineSkipNext />
+                        </button>
+                    </div>
                 </div>
                 <div className="w-full px-2 flex gap-2 items-center">
                     <p className="text-sm text-white/80">{formatted_progress}</p>
