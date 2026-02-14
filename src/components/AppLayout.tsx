@@ -214,9 +214,10 @@ function AppContent(){
             overflow-x-clip h-[80%] flex flex-col gap-6">
                 <h2 className="text-2xl font-bold">Songs</h2>
                 <ul className="flex flex-col gap-2">
-                    {songs.map((song) => (
+                    {songs.map((song, index) => (
                         <Song
                             song={song}
+                            number={index + 1}
                             togglePlay={togglePlay}
                             getPlayPauseButton={getPlayPauseButton}
                         />

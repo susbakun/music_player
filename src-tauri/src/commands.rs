@@ -125,8 +125,6 @@ pub fn change_song_position(window: Window, position: u64) {
 
         let state = state.lock().unwrap();
 
-        println!("{position}");
-
         if let Some(sink) = &state.sink {
             sink.try_seek(Duration::from_secs(position))
                 .expect("couldn't seek the song")
