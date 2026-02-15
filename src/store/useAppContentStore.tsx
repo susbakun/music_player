@@ -8,6 +8,7 @@ import { IoPlay, IoPause } from "react-icons/io5";
 type AppContentState = {
     songs: ReadSongType[];
     currentSong: CurrentSongType | null;
+    queue: ReadSongType[];
 };
 
 type AppContentActions = {
@@ -20,13 +21,18 @@ type AppContentActions = {
     playPrev: () => void;
     getPlayPauseButton: (song: ReadSongType, is_player?: boolean) => React.JSX.Element;
     togglePlay: (song: ReadSongType) => void;
+    addToQueue: (song: ReadSongType) => void,
+    removeFromQueue: (song: ReadSongType) => void,
+    isSongInQueue: (song: ReadSongType) => boolean
 };
 
 export const useAppContentStore = create<AppContentState & AppContentActions>(
     (set, get) => ({
       songs: [],
       currentSong: null,
+      queue: [],
 
+      // tracks
       setSongs: (songs) => set({ songs }),
 
       selectDirectory: async () => {
@@ -50,6 +56,7 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
         set({ songs: res });
       },
 
+      // player
       playSong: (song: ReadSongType) => {
         set({ currentSong: { ...song, is_playing: true } });
         invoke("play_song", { song_path: song.song_path });
@@ -120,6 +127,30 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
         } else {
           playSong(song);
         }
+      },
+
+      // queue
+      addToQueue: (song: ReadSongType) => {
+        let { queue } = get();
+        queue.push({...song})
+
+        set({ queue })
+      },
+
+      removeFromQueue(song) {
+        let { queue } = get();
+
+        const updatedQueue = queue.filter((queuedSong) => 
+          queuedSong.song_name != song.song_name)
+
+        set({ queue: updatedQueue })
+      },
+
+      isSongInQueue(song): boolean {
+        const { queue } = get()
+
+        return !!queue.find((queuedSong) => 
+          queuedSong.song_name === song.song_name)
       },
     })
 );

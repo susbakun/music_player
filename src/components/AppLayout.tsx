@@ -24,7 +24,7 @@ function AppSideBar(){
 
     return(
         <aside className="border-r border-r-white/50
-        w-[25%] flex flex-col gap-20 px-4 py-8">
+            w-[25%] flex flex-col gap-20 px-4 py-8">
             <section className="flex flex-col items-start gap-4">
                 <h2 className="font-bold text-lg">Library</h2>
                 <ul className="flex flex-col items-start gap-2
