@@ -14,10 +14,10 @@
       {
         "title": "music_player",
         "width": 800,
-        "height": 600,
+        "height": 650,
         "transparent": true,
         "minWidth": 800,
-        "minHeight": 600
+        "minHeight": 650
       }
     ],
     "security": {

@@ -18,7 +18,7 @@ export const ActionButton = ({
   return (
     <button 
         onClick={() => handleViewChange(view)}
-        className={`${isActive && "bg-white/5"}
+        className={`${isActive && "bg-white/5 font-bold"}
         w-full text-start rounded-md px-2 py-1`}>
         {text}
     </button>

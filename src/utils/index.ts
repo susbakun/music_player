@@ -9,3 +9,8 @@ export function iconBytesToBlobUrl(bytes: number[]): string | null {
     const blob = new Blob([arr], { type: mime })
     return URL.createObjectURL(blob)
 }
+
+export function getFormattedPosition(position: number | null): string | null {
+    if (position !== null) return `${Math.floor(position / 60)}:${String(position % 60).padStart(2, "0")}`
+    return null
+}
