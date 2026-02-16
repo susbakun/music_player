@@ -15,34 +15,34 @@ impl ReadSong {
     pub fn from_file_entry(file_entry: DirEntry) -> Self {
         let path = file_entry.path();
 
-            let file = File::open(&path)
-                .expect("couldn't open the file");
+        let file = File::open(&path)
+            .expect("couldn't open the file");
 
-            let file_name = path.file_name()
-                .unwrap();
-            let song_name = file_name.to_str()
-                .expect("failed to convert OsString to &str")
-                .to_string();
-    
-            let source = Decoder::try_from(file)
-                .expect("couldn't decode the file");
-            let duration_in_secs = source.total_duration()
-                .unwrap()
-                .as_secs();
+        let file_name = path.file_name()
+            .unwrap();
+        let song_name = file_name.to_str()
+            .expect("failed to convert OsString to &str")
+            .to_string();
 
-            let file_path = path.to_string_lossy()
-                .to_string();
+        let source = Decoder::try_from(file)
+            .expect("couldn't decode the file");
+        let duration_in_secs = source.total_duration()
+            .unwrap()
+            .as_secs();
 
-            
-            let icon = Self::extract_icon(&file_path)
-                .expect("failed reading the picture");
+        let file_path = path.to_string_lossy()
+            .to_string();
+
         
-            Self {
-                song_name,
-                song_path: file_path,
-                duration: duration_in_secs,
-                icon: icon
-            }
+        let icon = Self::extract_icon(&file_path)
+            .expect("failed reading the picture");
+    
+        Self {
+            song_name,
+            song_path: file_path,
+            duration: duration_in_secs,
+            icon: icon
+        }
     }
 
     fn extract_icon(file_path: &String) -> Result<Vec<u8>, LoftyError> {
@@ -55,9 +55,13 @@ impl ReadSong {
             }
         }
 
-        let mut file = File::open("./icons/music_cover.png").unwrap();
+        // returning the default music cover if there wasn't any
+        let mut file = File::open("./icons/music_cover.png")
+            .expect("couldn't open the file");
         let mut buffer = Vec::new();
-        file.read_to_end(&mut buffer).unwrap();
+        
+        file.read_to_end(&mut buffer)
+            .expect("failed to read the file to the buffer");
         return Ok(buffer)
     }
 }
