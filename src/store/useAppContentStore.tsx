@@ -2,28 +2,28 @@ import type React from "react";
 import { create } from "zustand";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import { ReadSongType, CurrentSongType } from "@/shared/types";
+import { ReadFileType, SongType } from "@/shared/types";
 import { IoPlay, IoPause } from "react-icons/io5";
 
 type AppContentState = {
-    songs: ReadSongType[];
-    currentSong: CurrentSongType | null;
-    queue: ReadSongType[];
+    songs: SongType[];
+    currentSong: SongType | null;
+    queue: SongType[];
 };
 
 type AppContentActions = {
-    setSongs: (songs: ReadSongType[]) => void;
+    setSongs: (songs: SongType[]) => void;
     selectDirectory: () => Promise<string>;
     getSongs: (dir: string) => Promise<void>;
-    playSong: (song: ReadSongType) => void;
-    pauseSong: (song: ReadSongType) => void;
+    playSong: (song: SongType) => void;
+    pauseSong: (song: SongType) => void;
     playNext: () => void;
     playPrev: () => void;
-    getPlayPauseButton: (song: ReadSongType, is_player?: boolean) => React.JSX.Element;
-    togglePlay: (song: ReadSongType) => void;
-    addToQueue: (song: ReadSongType) => void,
-    removeFromQueue: (song: ReadSongType) => void,
-    isSongInQueue: (song: ReadSongType) => boolean
+    getPlayPauseButton: (song: SongType, is_player?: boolean) => React.JSX.Element;
+    togglePlay: (song: SongType) => void;
+    addToQueue: (song: SongType) => void,
+    removeFromQueue: (song: SongType) => void,
+    isSongInQueue: (song: SongType) => boolean
 };
 
 export const useAppContentStore = create<AppContentState & AppContentActions>(
@@ -52,52 +52,98 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
       },
 
       getSongs: async (dir: string) => {
-        const res = await invoke<ReadSongType[]>("read_songs", { dir });
-        set({ songs: res });
+        const res = await invoke<ReadFileType[]>("read_songs", { dir })
+        const songs: SongType[] = res.map((song) => ({...song, is_playing: false}))
+
+        set({ songs });
       },
 
       // player
-      playSong: (song: ReadSongType) => {
-        set({ currentSong: { ...song, is_playing: true } });
+      playSong: (song) => {
+        const { songs, queue } = get()
+        
+        const updatedSongs = songs.map((s) => {
+          if (s.song_name === song.song_name) {
+            return {...s, is_playing: true}
+          }
+          return s
+        })
+
+        const updatedQueue = queue.map((s) => {
+          if (s.song_name === song.song_name) {
+            return {...s, is_playing: true}
+          }
+          return s
+        })
+
+        const currentSong: SongType = {...song, is_playing: true}
+
+        set({ currentSong})
+        set({ songs: updatedSongs })
+        set({ queue: updatedQueue })
         invoke("play_song", { song_path: song.song_path });
       },
 
-      pauseSong: (song: ReadSongType) => {
-        set({ currentSong: { ...song, is_playing: false } });
+      pauseSong: (song) => {
+        const { songs, queue} = get()
+        
+        const updatedSongs = songs.map((s) => ({...s, is_playing: false}))
+
+        const updatedQueue = queue.map((s) => ({...s, is_playing: false}))
+
+        const updatedCurrentSong: SongType = {...song, is_playing: false}
+
+        set({currentSong: updatedCurrentSong})
+        set({songs: updatedSongs})
+        set({queue: updatedQueue})
         invoke("pause_song", { song_path: song.song_path });
       },
 
       playNext: () => {
-        const { currentSong, songs, playSong } = get();
+        const { currentSong, songs, queue, playSong } = get();
+
+        // if queue wasn't empty then pick one from there
+        if (queue.length > 0) {
+          const nextSong = queue.shift()!
+          playSong(nextSong)
+          return
+        }
+
         if (!currentSong) return;
 
-        const currentSongIdx = songs.findIndex(
-          (s) => s.song_name === currentSong.song_name
-        );
+        const currentSongIndex = songs.findIndex
+          ((s) => s.song_name === currentSong.song_name)
+
         const lastSongIdx = songs.length - 1;
-        const temp =
-          currentSongIdx === lastSongIdx ? songs[0] : songs[currentSongIdx + 1];
-        const nextSong: CurrentSongType = { ...temp, is_playing: false };
+        const nextSong =
+          currentSongIndex === lastSongIdx ? 
+          songs[0] : 
+          songs[currentSongIndex + 1];
+
         playSong(nextSong);
       },
 
       playPrev: () => {
         const { currentSong, songs, playSong } = get();
+
         if (!currentSong) return;
 
-        const currentSongIdx = songs.findIndex(
-          (s) => s.song_name === currentSong.song_name
-        );
+        const currentSongIndex = songs.findIndex
+          ((s) => s.song_name === currentSong.song_name)
+
         const lastSongIdx = songs.length - 1;
-        const temp =
-          currentSongIdx === 0 ? songs[lastSongIdx] : songs[currentSongIdx - 1];
-        const prevSong: CurrentSongType = { ...temp, is_playing: false };
+        const prevSong =
+          currentSongIndex === 0 ? 
+          songs[lastSongIdx] : 
+          songs[currentSongIndex - 1];
+
         playSong(prevSong);
       },
 
-      getPlayPauseButton: (song: ReadSongType, is_player?: boolean): React.JSX.Element => {
-        const { currentSong, pauseSong, playSong } = get();
+      getPlayPauseButton: (song, is_player?): React.JSX.Element => {
+        const { pauseSong, playSong, currentSong } = get();
         const btnClass = is_player ? "bg-black/80 rounded-full px-2 py-2" : "";
+
         if (
           currentSong &&
           currentSong.is_playing &&
@@ -116,8 +162,9 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
         );
       },
 
-      togglePlay: (song: ReadSongType) => {
+      togglePlay: (song) => {
         const { currentSong, pauseSong, playSong } = get();
+
         if (
           currentSong &&
           currentSong.is_playing &&
@@ -130,7 +177,7 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
       },
 
       // queue
-      addToQueue: (song: ReadSongType) => {
+      addToQueue: (song) => {
         let { queue } = get();
         queue.push({...song})
 

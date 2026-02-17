@@ -1,13 +1,13 @@
 import { Menu, MenuItemOptions } from "@tauri-apps/api/menu"
-import { ReadSongType } from "@/shared/types"
+import { SongType } from "@/shared/types"
 import { JSX, MouseEvent } from "react"
 import { useAppContentStore } from "@/store/useAppContentStore"
 
 type SongProps = {
-    song: ReadSongType,
+    song: SongType,
     number: number,
-    togglePlay: (song: ReadSongType) => void,
-    getPlayPauseButton: (song: ReadSongType, is_player?: boolean) 
+    togglePlay: (song: SongType) => void,
+    getPlayPauseButton: (song: SongType, is_player?: boolean) 
         => JSX.Element
 }
 

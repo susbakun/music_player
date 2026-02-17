@@ -13,10 +13,11 @@ export default defineConfig(async () => ({
   ],
   resolve: {
     alias: {
-      "@/components" : resolve("src/components"),
-      "@/utils" : resolve("src/utils"),
+      "@/components": resolve("src/components"),
+      "@/pages": resolve("src/pages"),
+      "@/utils": resolve("src/utils"),
       "@/shared": resolve("src/shared"),
-      "@/store": resolve("src/store")
+      "@/store": resolve("src/store"),
     }
   },
 
