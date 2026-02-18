@@ -53,31 +53,41 @@ function AppSideBar() {
 }
 
 function AppContent() {
-  const getCurrentSong = useAppContentStore((s) => s.getCurrentSong);
+  const currentSong = useAppContentStore((s) => s.currentSong);
   const playNext = useAppContentStore((s) => s.playNext);
   const playPrev = useAppContentStore((s) => s.playPrev);
   const getPlayPauseButton = useAppContentStore((s) => s.getPlayPauseButton);
   const selectDirectory = useAppContentStore((s) => s.selectDirectory)
   const getSongs = useAppContentStore((s) => s.getSongs)
-  const currentSongIndex = useAppContentStore((s) => s.currentSongIndex)
 
-  useEffect(() => {
-    selectDirectory().then((dir) => {
+  const specifyDirectory = (force?: boolean) => {
+    selectDirectory(force).then((dir) => {
       getSongs(dir);
     });
+  }
+
+  useEffect(() => {
+    const unlisten = listen<string>("change-directory", () => {
+      specifyDirectory(true)
+    })
+
+    specifyDirectory()
+
+    return () => {
+      unlisten.then((fn) => fn())
+    }
   }, []);
 
   useEffect(() => {
     const unlisten = listen<string>("finished-song", (event) => {
       const songName = event.payload;
-      const currentSong = getCurrentSong()
       if (currentSong && currentSong.song_name !== songName) return;
       playNext();
     });
     return () => {
       unlisten.then((fn) => fn());
     };
-  }, [currentSongIndex, playNext]);
+  }, [currentSong, playNext]);
 
   return (
     <div className="h-full flex flex-col w-full">

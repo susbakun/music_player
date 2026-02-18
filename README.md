@@ -11,6 +11,7 @@ A music player written in Tauri, React and Rust.
 - Scanning a directory up to 4 subdirectories
 - You can change the position of the song.
 - Queue/Dequeue songs and see them in queue page.
+- Changing the directory via menu (Cmd/Crtl + D).
 
 ## TODOS
 - [ ] Playlists

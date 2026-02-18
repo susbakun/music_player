@@ -13,7 +13,7 @@ type AppContentState = {
 
 type AppContentActions = {
     setSongs: (songs: SongType[]) => void;
-    selectDirectory: () => Promise<string>;
+    selectDirectory: (force?: boolean) => Promise<string>;
     getSongs: (dir: string) => Promise<void>;
     playSong: (song: SongType) => void;
     pauseSong: (song: SongType) => void;
@@ -35,9 +35,9 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
       // tracks
       setSongs: (songs) => set({ songs }),
 
-      selectDirectory: async () => {
+      selectDirectory: async (force?: boolean) => {
         let selectedDir = localStorage.getItem("selected-dir");
-        if (selectedDir) {
+        if (selectedDir && !force) {
           return selectedDir;
         }
         selectedDir = await open({
