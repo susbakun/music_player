@@ -13,10 +13,10 @@
     "windows": [
       {
         "title": "music_player",
-        "width": 800,
+        "width": 1000,
         "height": 650,
         "transparent": true,
-        "minWidth": 800,
+        "minWidth": 1000,
         "minHeight": 650
       }
     ],

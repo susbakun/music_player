@@ -9,7 +9,8 @@ type AppContentState = {
     songs: SongType[];
     currentSong: SongType | null;
     queue: SongType[];
-    isLoading: boolean
+    isLoading: boolean,
+    master_volume: number
 };
 
 type AppContentActions = {
@@ -20,6 +21,7 @@ type AppContentActions = {
     pauseSong: (song: SongType) => void;
     playNext: () => void;
     playPrev: () => void;
+    setVolume: (volume: number) => void,
     getPlayPauseButton: (song: SongType, is_player?: boolean) => React.JSX.Element;
     togglePlay: (song: SongType) => void;
     addToQueue: (song: SongType) => void,
@@ -33,6 +35,7 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
       currentSong: null,
       queue: [],
       isLoading: false,
+      master_volume: 1.0,
 
       // tracks
       setSongs: (songs) => set({ songs }),
@@ -143,6 +146,10 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
           songs[currentSongIndex - 1];
 
         playSong(prevSong);
+      },
+
+      setVolume: (volume: number) => {
+        set({master_volume: volume})
       },
 
       getPlayPauseButton: (song, is_player?): React.JSX.Element => {

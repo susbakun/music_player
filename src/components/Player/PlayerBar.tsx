@@ -2,6 +2,7 @@ import { getFormattedPosition } from "@/utils";
 import { Tooltip } from "../Tooltip";
 import { MouseEvent, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { Bar } from "./Bar";
 
 type PlayerBarProps = {
     progress: number,
@@ -43,32 +44,17 @@ export const PlayerBar = ({
     return (
         <div className="w-full px-2 flex gap-2 items-center">
             <p className="text-sm text-white/80">{formatted_progress}</p>
-            <div
-                role="progressbar"
-                aria-valuenow={progress}
-                aria-valuemin={0}
-                aria-valuemax={duration}
-                className="h-[6px] w-full bg-white/20 rounded-full 
-                cursor-pointer flex items-center group my-anchor-element relative"
-                onMouseMove={handleMouseOnBar}
-                onClick={handleProgressBarClick}
-                onMouseLeave={() => setHoveredProgress(null)}
-            >
-                <div
-                style={{ width: duration ? `${(progress * 100) / duration}%` : "0%" }}
-                className="h-full bg-white/80 rounded-full transition-[width] 
-                duration-75 ease-linear pointer-events-none -mr-1"
+            <Bar
+                valueNow={progress}
+                minValue={0}
+                maxValue={duration}
+                className="w-full"
+                handleMouseMove={handleMouseOnBar}
+                handleMouseClick={handleProgressBarClick}
+                handleMouseLeave={() => setHoveredProgress(null)}
+                popupPosition={popupPosition}
+                formatted_hovered_value={formatted_hovered_progress}
                 />
-                <div
-                    className="w-4 h-0 group-hover:h-4 
-                    rounded-full bg-white transition-all 
-                    duration-75 ease-linear"
-                />
-                <Tooltip
-                style={{ left: `${popupPosition}px` }}
-                innerContent={formatted_hovered_progress}
-                />
-            </div>
             <p className="text-sm text-white/80">{formatted_duration}</p>
         </div>
     );

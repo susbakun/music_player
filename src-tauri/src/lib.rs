@@ -48,7 +48,8 @@ pub fn run() {
             play_song,
             pause_song,
             get_song_position,
-            change_song_position
+            change_song_position,
+            change_master_volume
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

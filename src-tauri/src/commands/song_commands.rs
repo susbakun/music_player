@@ -131,3 +131,17 @@ pub fn change_song_position(window: Window, position: u64) {
         }
     });
 }
+
+#[tauri::command(rename_all = "snake_case")]
+pub fn change_master_volume(window: Window, volume: f32) {
+    thread::spawn(move || {
+        let app_handle = window.app_handle();
+        let state = app_handle.state::<Mutex<AppData>>();
+
+        let state = state.lock().unwrap();
+
+        if let Some(sink) = &state.sink {
+            sink.set_volume(volume);
+        }
+    });
+}

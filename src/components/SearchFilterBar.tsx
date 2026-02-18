@@ -28,7 +28,7 @@ export const SearchFilterBar = ({
         onChange={handleSearchChange}
         placeholder="Search by song name..."
         className="w-full sm:w-2/3 rounded-md bg-white/5 px-3 py-2 
-        text-sm outline-none focus:ring-2 focus:ring-white/40"
+        text-sm outline-none focus:ring-2 focus:ring-white/40 select-none"
       />
       <CustomSelect<FileFormat>
         className="w-full sm:w-1/3"

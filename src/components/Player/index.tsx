@@ -2,9 +2,10 @@ import { SongType } from "@/shared/types"
 import { iconBytesToBlobUrl } from "@/utils";
 import { invoke } from "@tauri-apps/api/core";
 import { JSX, useEffect, useState } from "react";
-import { MdOutlineSkipNext, MdOutlineSkipPrevious } from "react-icons/md";
+import { MdOutlineSkipNext, MdOutlineSkipPrevious, MdVolumeUp } from "react-icons/md";
 import { PlayerBar } from "./PlayerBar";
 import { useAppContentStore } from "@/store/useAppContentStore";
+import { VolumeBar } from "./VolumeBar";
 
 
 
@@ -56,33 +57,45 @@ export const Player = ({
 
     if (currentSong)
         return (
-            <div className="h-[35%] flex bg-black/50 rounded-lg py-4
-                flex-col mr-4 items-center justify-between">
-                <div className="flex flex-col gap-4 items-center">
-                    <p className="text-center">{currentSong.song_name}</p>
+            <div className="h-[90px] flex bg-black/50 px-4 mr-4 
+            items-center justify-between rounded-xl">
+                <div className="flex items-center gap-3 min-w-[180px] max-w-[30%] shrink-0">
                     {iconUrl && (
                         <img
                             src={iconUrl}
-                            className="w-16 h-16 xl:w-44 xl:h-44 rounded object-cover shrink-0"
+                            className="w-14 h-14 rounded object-cover shrink-0"
                         />
                     )}
-                    <div className="flex justify-center w-full h-fit gap-8">
-                        <button className="bg-black/80 rounded-full px-2 py-2"
-                            onClick={playPrev}
-                        >
-                            <MdOutlineSkipPrevious />
-                        </button>
-                        {getPlayPauseButton(currentSong, true)}
-                        <button className="bg-black/80 rounded-full px-2 py-2"
-                            onClick={playNext}>
-                            <MdOutlineSkipNext />
-                        </button>
+                    <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-white truncate">
+                            {currentSong.song_name}
+                        </p>
+                        <p className="text-xs text-white/60 truncate">Artist</p>
                     </div>
                 </div>
-                <PlayerBar
-                    duration={duration}
-                    progress={progress}
-                />
+
+                <div className="flex-1 flex flex-col items-center justify-center gap-1 px-4">
+                    <div className="flex justify-center items-center gap-2">
+                        <button 
+                            className="text-white/70 hover:text-white transition-colors p-1"
+                            onClick={playPrev}
+                        >
+                            <MdOutlineSkipPrevious className="w-5 h-5" />
+                        </button>
+                        {getPlayPauseButton(currentSong, true)}
+                        <button 
+                            className="text-white/70 hover:text-white transition-colors p-1"
+                            onClick={playNext}
+                        >
+                            <MdOutlineSkipNext className="w-5 h-5" />
+                        </button>
+                    </div>
+                    <PlayerBar
+                        duration={duration}
+                        progress={progress}
+                    />
+                </div>
+                <VolumeBar />
             </div>
         )
 }
