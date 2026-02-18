@@ -18,6 +18,7 @@ export default defineConfig(async () => ({
       "@/utils": resolve("src/utils"),
       "@/shared": resolve("src/shared"),
       "@/store": resolve("src/store"),
+      "@/hooks": resolve("src/hooks")
     }
   },
 

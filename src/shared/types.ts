@@ -9,3 +9,5 @@ export type ReadFileType = {
 
 export type SongType = ReadFileType & 
     { is_playing: boolean }
+
+export type FileFormat = "all" | "mp3" | "wav" | "flac";
