@@ -9,6 +9,7 @@ type AppContentState = {
     songs: SongType[];
     currentSong: SongType | null;
     queue: SongType[];
+    isLoading: boolean
 };
 
 type AppContentActions = {
@@ -31,6 +32,7 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
       songs: [],
       currentSong: null,
       queue: [],
+      isLoading: false,
 
       // tracks
       setSongs: (songs) => set({ songs }),
@@ -52,10 +54,13 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
       },
 
       getSongs: async (dir: string) => {
+        set({isLoading: true})
+
         const res = await invoke<ReadFileType[]>("read_songs", { dir })
         const songs: SongType[] = res.map((song) => ({...song, is_playing: false}))
-
         set({ songs });
+
+        set({isLoading: false})
       },
 
       // player

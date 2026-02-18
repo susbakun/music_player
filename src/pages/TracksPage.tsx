@@ -9,7 +9,7 @@ export function TracksPage() {
   return (
     <div className="flex-1 px-4 py-8 overflow-y-auto overflow-x-clip 
       h-[80%] flex flex-col gap-6">
-      <h2 className="text-2xl font-bold">Songs</h2>
+      <h2 className="text-2xl font-bold">Tracks</h2>
       {songs.length === 0 ? (
         <p className="text-white/60 text-sm">Your queue is empty. Add songs from Tracks.</p>
       ) : 

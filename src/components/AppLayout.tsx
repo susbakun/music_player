@@ -3,6 +3,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import { listen } from "@tauri-apps/api/event";
 import { Player } from "./Player";
 import { useAppContentStore } from "@/store/useAppContentStore";
+import { Loader } from "./Loader";
 
 function RootLayout({ children, ...props }: ComponentProps<"main">) {
   return <main {...props}>{children}</main>;
@@ -54,6 +55,7 @@ function AppSideBar() {
 
 function AppContent() {
   const currentSong = useAppContentStore((s) => s.currentSong);
+  const isLoading = useAppContentStore((s) => s.isLoading);
   const playNext = useAppContentStore((s) => s.playNext);
   const playPrev = useAppContentStore((s) => s.playPrev);
   const getPlayPauseButton = useAppContentStore((s) => s.getPlayPauseButton);
@@ -91,7 +93,7 @@ function AppContent() {
 
   return (
     <div className="h-full flex flex-col w-full">
-      <Outlet />
+      {isLoading ? <Loader /> : <Outlet />}
       <Player
         playNext={playNext}
         playPrev={playPrev}
