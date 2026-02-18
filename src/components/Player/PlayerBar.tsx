@@ -1,5 +1,4 @@
 import { getFormattedPosition } from "@/utils";
-import { Tooltip } from "../Tooltip";
 import { MouseEvent, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Bar } from "./Bar";

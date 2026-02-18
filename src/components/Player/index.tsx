@@ -2,7 +2,7 @@ import { SongType } from "@/shared/types"
 import { iconBytesToBlobUrl } from "@/utils";
 import { invoke } from "@tauri-apps/api/core";
 import { JSX, useEffect, useState } from "react";
-import { MdOutlineSkipNext, MdOutlineSkipPrevious, MdVolumeUp } from "react-icons/md";
+import { MdOutlineSkipNext, MdOutlineSkipPrevious } from "react-icons/md";
 import { PlayerBar } from "./PlayerBar";
 import { useAppContentStore } from "@/store/useAppContentStore";
 import { VolumeBar } from "./VolumeBar";
