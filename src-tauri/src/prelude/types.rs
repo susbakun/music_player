@@ -1,13 +1,19 @@
 use std::{fs::File, io::Read};
-use lofty::{error::LoftyError, file::TaggedFileExt, read_from_path};
+
+use lofty::error::LoftyError;
+use lofty::file::TaggedFileExt;
+use lofty::tag::Accessor;
+use lofty::read_from_path;
+
 use rodio::{Decoder, Source};
 use walkdir::DirEntry;
 #[derive(serde::Serialize)]
 pub struct ReadSong {
     pub song_name: String,
-    pub icon: Vec<u8>,
     pub song_path: String,
     pub duration: u64,
+    pub artist: String,
+    pub icon: Vec<u8>,
 }
 
 
@@ -36,12 +42,16 @@ impl ReadSong {
         
         let icon = Self::extract_icon(&file_path)
             .expect("failed reading the picture");
+
+        let artist = Self::extract_artist(&file_path)
+            .expect("failed reading the artist");
     
         Self {
             song_name,
             song_path: file_path,
             duration: duration_in_secs,
-            icon: icon
+            icon: icon,
+            artist
         }
     }
 
@@ -63,5 +73,18 @@ impl ReadSong {
         file.read_to_end(&mut buffer)
             .expect("failed to read the file to the buffer");
         return Ok(buffer)
+    }
+
+    fn extract_artist(file_path: &String) -> Result<String, LoftyError> {
+        let file = read_from_path(file_path)?;
+        let tags = file.tags();
+
+        if let Some(tag) = tags.first() {
+            if let Some(artist) = tag.artist(){
+                return Ok(artist.to_string())
+            }
+        }
+
+        Ok(String::from("Artist"))
     }
 }

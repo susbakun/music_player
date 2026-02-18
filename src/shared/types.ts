@@ -4,7 +4,8 @@ export type ReadFileType = {
     song_name: string,
     song_path: string,
     duration: number,
-    icon: number[]
+    icon: number[],
+    artist: string
 }
 
 export type SongType = ReadFileType & 

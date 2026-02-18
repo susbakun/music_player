@@ -70,7 +70,7 @@ export const Player = ({
                         <p className="text-sm font-medium text-white truncate">
                             {currentSong.song_name}
                         </p>
-                        <p className="text-xs text-white/60 truncate">Artist</p>
+                        <p className="text-xs text-white/60 truncate">{currentSong.artist}</p>
                     </div>
                 </div>
 
