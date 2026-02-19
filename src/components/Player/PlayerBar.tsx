@@ -1,7 +1,7 @@
 import { getFormattedPosition } from "@/utils";
 import { MouseEvent, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { Bar } from "./Bar";
+import { useAppContentStore } from "@/store/useAppContentStore";
 
 type PlayerBarProps = {
     progress: number,
@@ -14,7 +14,8 @@ export const PlayerBar = ({
 }: PlayerBarProps) => {
     const [popupPosition, setPopupPosition] = useState<null | number>(null)
     const [hoveredProgress, setHoveredProgress] = useState<null | number>(null)
-
+    
+    const setSongPosition = useAppContentStore((s) => s.setSongPosition);
 
     const formatted_duration = getFormattedPosition(duration)
     const formatted_progress = getFormattedPosition(progress)
@@ -34,10 +35,10 @@ export const PlayerBar = ({
     }
 
 
-    const handleProgressBarClick = () => {
+    const handleProgressBarClick = async () => {
         if (!hoveredProgress) return
 
-        invoke("change_song_position", { position: hoveredProgress })
+        setSongPosition(hoveredProgress)
     }
 
     return (

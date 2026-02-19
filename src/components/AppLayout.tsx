@@ -3,7 +3,8 @@ import { NavLink, Outlet } from "react-router-dom";
 import { listen } from "@tauri-apps/api/event";
 import { Player } from "./Player";
 import { useAppContentStore } from "@/store/useAppContentStore";
-import { Loader } from "./Loader";
+import { CustomLoader } from "./Custom/CustomLoader";
+import { Toaster } from "react-hot-toast";
 
 function RootLayout({ children, ...props }: ComponentProps<"main">) {
   return <main {...props}>{children}</main>;
@@ -93,12 +94,13 @@ function AppContent() {
 
   return (
     <div className="h-full flex flex-col w-full">
-      {isLoading ? <Loader /> : <Outlet />}
+      {isLoading ? <CustomLoader /> : <Outlet />}
       <Player
         playNext={playNext}
         playPrev={playPrev}
         getPlayPauseButton={getPlayPauseButton}
       />
+      <Toaster />
     </div>
   );
 }

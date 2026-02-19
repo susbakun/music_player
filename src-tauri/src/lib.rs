@@ -1,5 +1,5 @@
 use rodio::Sink;
-use std::sync::{Arc, Mutex,};
+use std::sync::{Arc, Mutex};
 use tauri::Manager;
 
 #[cfg(target_os = "macos")]
@@ -19,10 +19,16 @@ struct AppData {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .level(tauri_plugin_log::log::LevelFilter::Info)
+                .build(),
+        )
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             // making the window transparent
-            let window = app.get_webview_window("main")
+            let window = app
+                .get_webview_window("main")
                 .expect("Failed to retrieve window object");
             #[cfg(target_os = "macos")]
             apply_vibrancy(&window, NSVisualEffectMaterial::HudWindow, None, None)
@@ -37,7 +43,7 @@ pub fn run() {
         })
         .on_menu_event(|app, event| {
             let event_id = event.id().0.as_str();
-            match  event_id {
+            match event_id {
                 "change_directory_id" => change_directory(app.app_handle()),
                 _ => {}
             }

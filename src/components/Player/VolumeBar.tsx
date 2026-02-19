@@ -1,8 +1,6 @@
 import { useAppContentStore } from '@/store/useAppContentStore'
 import { MouseEvent, useState } from 'react'
 import { MdVolumeUp } from 'react-icons/md'
-import { Tooltip } from '../Tooltip'
-import { invoke } from '@tauri-apps/api/core'
 import { Bar } from './Bar'
 
 export const VolumeBar = () => {
@@ -26,14 +24,12 @@ export const VolumeBar = () => {
         setHoveredVolume(fraction)
     }
 
-    const handleBarClick = () => {
+    const handleBarClick = async () => {
         if (!hoveredVolume) return
 
         const fraction_volume = hoveredVolume / 100
 
         setVolume(fraction_volume)
-
-        invoke("change_master_volume", { volume: fraction_volume })
     }
 
     return (

@@ -1,9 +1,10 @@
-use std::{error::Error, fs::File, io::Read};
+use std::{fs::File, io::Read};
 
-use lofty::error::LoftyError;
 use lofty::file::TaggedFileExt;
-use lofty::tag::Accessor;
 use lofty::read_from_path;
+use lofty::tag::Accessor;
+
+use anyhow::{Result, anyhow};
 
 use rodio::{Decoder, Source};
 use walkdir::DirEntry;
@@ -16,68 +17,65 @@ pub struct ReadSong {
     pub icon: Vec<u8>,
 }
 
-
 impl ReadSong {
-    pub fn from_file_entry(file_entry: DirEntry) -> Result<Self, Box<dyn Error>> {
+    pub fn from_file_entry(file_entry: DirEntry) -> Result<Self>{
         let path = file_entry.path();
 
         let file = File::open(&path)?;
 
         let file_name = path.file_name()
-            .unwrap();
+            .ok_or_else(|| anyhow!("file name is empty"))?;
 
         let song_name = file_name.to_str()
-            .unwrap()
+            .ok_or(anyhow!("no file name in str"))?
             .to_string();
 
         let source = Decoder::try_from(file)?;
         let duration_in_secs = source.total_duration()
-            .unwrap()
+            .ok_or_else(|| anyhow!("no duration for given source"))?
             .as_secs();
 
         let file_path = path.to_string_lossy()
             .to_string();
 
-        
         let icon = Self::extract_icon(&file_path)?;
 
-        let artist = Self::extract_artist(&file_path)
-            .expect("failed reading the artist");
-    
+        let artist = Self::extract_artist(&file_path)?;
+
         Ok(Self {
-                song_name,
-                song_path: file_path,
-                duration: duration_in_secs,
-                icon: icon,
-                artist
-            })
+            song_name,
+            song_path: file_path,
+            duration: duration_in_secs,
+            icon: icon,
+            artist,
+        })
     }
 
-    fn extract_icon(file_path: &String) -> Result<Vec<u8>, LoftyError> {
+    fn extract_icon(file_path: &String) -> Result<Vec<u8>> {
         let file = read_from_path(file_path)?;
         let tags = file.tags();
 
         if let Some(tag) = tags.first() {
             if let Some(picture) = tag.pictures().first() {
-                return Ok(picture.data().into())
+                return Ok(picture.data().into());
             }
         }
 
         // returning the default music cover if there wasn't any
         let mut file = File::open("./icons/music_cover.png")?;
         let mut buffer = Vec::new();
-        
+
         file.read_to_end(&mut buffer)?;
-        return Ok(buffer)
+        return Ok(buffer);
     }
 
-    fn extract_artist(file_path: &String) -> Result<String, LoftyError> {
+    fn extract_artist(file_path: &String) -> Result<String> {
         let file = read_from_path(file_path)?;
         let tags = file.tags();
 
         if let Some(tag) = tags.first() {
-            if let Some(artist) = tag.artist(){
-                return Ok(artist.to_string())
+            if let Some(artist) = tag.artist() {
+                return Ok(artist.to_string());
             }
         }
 

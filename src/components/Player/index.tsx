@@ -7,9 +7,6 @@ import { PlayerBar } from "./PlayerBar";
 import { useAppContentStore } from "@/store/useAppContentStore";
 import { VolumeBar } from "./VolumeBar";
 
-
-
-
 type PlayerProps = {
     playPrev: () => void,
     playNext: () => void,
@@ -25,12 +22,13 @@ export const Player = ({
     const [iconUrl, setIconUrl] = useState<string | null>(null)
     
     const currentSong = useAppContentStore((s) => s.currentSong)
+    const getSongPosition = useAppContentStore((s) => s.getSongPosition)
 
     const duration = currentSong?.duration || 0
     
 
-    const getSongPosition = async () => {
-        let position = await invoke<number>("get_song_position");
+    const songPosition = async () => {
+        let position = await getSongPosition() || 0;
 
         setProgress(position)
     }
@@ -46,7 +44,7 @@ export const Player = ({
 
     useEffect(() => {
         let intervalId = setInterval(() => {
-            getSongPosition()
+            songPosition()
         }, 100)
         
         return () => {

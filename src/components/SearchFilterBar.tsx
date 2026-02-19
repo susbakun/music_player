@@ -1,4 +1,4 @@
-import { FormatOptions } from "@/shared/constants";
+import { FORMAT_OPTIONS } from "@/shared/constants";
 import { FileFormat } from "@/shared/types";
 import { ChangeEvent } from "react";
 import { CustomSelect } from "@/components/Custom/CustomSelect";
@@ -33,7 +33,7 @@ export const SearchFilterBar = ({
       <CustomSelect<FileFormat>
         className="w-full sm:w-1/3"
         value={format}
-        options={FormatOptions as ReadonlyArray<{ value: FileFormat; text: string }>}
+        options={FORMAT_OPTIONS}
         onChange={onFormatChange}
       />
     </div>

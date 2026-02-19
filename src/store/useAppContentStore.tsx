@@ -4,6 +4,10 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { ReadFileType, SongType } from "@/shared/types";
 import { IoPlay, IoPause } from "react-icons/io5";
+import { error, info } from "@tauri-apps/plugin-log"
+import { DEFAULT_PATH } from "@/shared/constants";
+import toast from "react-hot-toast";
+
 
 type AppContentState = {
     songs: SongType[];
@@ -17,11 +21,13 @@ type AppContentActions = {
     setSongs: (songs: SongType[]) => void;
     selectDirectory: (force?: boolean) => Promise<string>;
     getSongs: (dir: string) => Promise<void>;
-    playSong: (song: SongType) => void;
-    pauseSong: (song: SongType) => void;
+    playSong: (song: SongType) => Promise<void>;
+    pauseSong: (song: SongType) => Promise<void>;
     playNext: () => void;
     playPrev: () => void;
-    setVolume: (volume: number) => void,
+    getSongPosition: () => Promise<number | undefined>;
+    setVolume: (volume: number) => Promise<void>,
+    setSongPosition: (position: number) => Promise<void>;
     getPlayPauseButton: (song: SongType, is_player?: boolean) => React.JSX.Element;
     togglePlay: (song: SongType) => void;
     addToQueue: (song: SongType) => void,
@@ -40,7 +46,7 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
       // tracks
       setSongs: (songs) => set({ songs }),
 
-      selectDirectory: async (force?: boolean) => {
+      selectDirectory: async (force) => {
         let selectedDir = localStorage.getItem("selected-dir");
         if (selectedDir && !force) {
           return selectedDir;
@@ -48,26 +54,36 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
         selectedDir = await open({
           multiple: false,
           directory: true,
-          defaultPath: "/Users/amir/Downloads/",
+          defaultPath: DEFAULT_PATH,
           title: "choose directory to scan",
         });
-        selectedDir = selectedDir || "/Users/amir/Downloads/";
+        selectedDir = selectedDir || DEFAULT_PATH;
         localStorage.setItem("selected-dir", selectedDir);
         return selectedDir;
       },
 
-      getSongs: async (dir: string) => {
+      getSongs: async (dir) => {
         set({isLoading: true})
+        try {
+          const res = await invoke<ReadFileType[]>("read_songs", { dir })
+          info("Read the songs successfully");
 
-        const res = await invoke<ReadFileType[]>("read_songs", { dir })
-        const songs: SongType[] = res.map((song) => ({...song, is_playing: false}))
-        set({ songs });
+          const songs: SongType[] = res.map((song) => ({...song, is_playing: false}))
+          set({ songs });
+  
+          set({isLoading: false})
+        } catch (err: unknown) {
+          await error(err as string)
+          toast.error("couldn't read the path")
 
-        set({isLoading: false})
+          set({isLoading: false})
+          localStorage.setItem("selected-dir", "")
+        }
+
       },
 
       // player
-      playSong: (song) => {
+      playSong: async (song) => {
         const { songs, queue } = get()
         
         const updatedSongs = songs.map((s) => {
@@ -89,10 +105,17 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
         set({ currentSong})
         set({ songs: updatedSongs })
         set({ queue: updatedQueue })
-        invoke("play_song", { song_path: song.song_path });
+        
+        try {
+          await invoke("play_song", { song_path: song.song_path });
+          info("played the song successfully")
+        } catch (err: unknown) {
+          error(err as string)
+          toast.error("couldn't play the song")
+        }
       },
 
-      pauseSong: (song) => {
+      pauseSong: async (song) => {
         const { songs, queue} = get()
         
         const updatedSongs = songs.map((s) => ({...s, is_playing: false}))
@@ -104,7 +127,14 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
         set({currentSong: updatedCurrentSong})
         set({songs: updatedSongs})
         set({queue: updatedQueue})
-        invoke("pause_song", { song_path: song.song_path });
+
+        try {
+          await invoke("pause_song", { song_path: song.song_path });
+          info("paused the song successfully")
+        } catch (err: unknown) {
+          await error(err as string)
+          toast.error("coudn't pause the song")
+        }
       },
 
       playNext: () => {
@@ -148,8 +178,35 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
         playSong(prevSong);
       },
 
-      setVolume: (volume: number) => {
+      getSongPosition: async () => {
+        try {
+          return await invoke<number>("get_song_position");
+        } catch (err: unknown) {
+          await error(err as string)
+          toast.error("couldn't get the song position")
+        }
+
+      },
+
+      setVolume: async (volume) => {
         set({master_volume: volume})
+        try {
+          await invoke("change_master_volume", { volume: volume })
+          info("changed master volume successfully")
+        } catch (err: unknown) {
+          await error(err as string)
+          toast.error("couldn't change the master volume")
+        }
+      },
+
+      setSongPosition: async (position) => {
+        try {
+          await invoke("change_song_position", { position })
+          info("changed song position successfully")
+      } catch (err: unknown) {
+          await error(err as string)
+          toast.error("failed to change the song position")
+      }
       },
 
       getPlayPauseButton: (song, is_player?): React.JSX.Element => {
@@ -205,7 +262,7 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
         set({ queue: updatedQueue })
       },
 
-      isSongInQueue(song): boolean {
+      isSongInQueue(song) {
         const { queue } = get()
 
         return !!queue.find((queuedSong) => 
