@@ -38,7 +38,7 @@ pub fn read_songs(dir: String) -> Result<Vec<ReadSong>, String> {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-pub fn play_song(song_path: String, window: Window) -> Result<(), String> {
+pub fn play_song(song_path: String, volume: f32, window: Window) -> Result<(), String> {
     thread::spawn(move || -> Result<(), String> {
         let app_handle = window.app_handle();
         let state = app_handle.state::<Mutex<AppData>>();
@@ -76,6 +76,7 @@ pub fn play_song(song_path: String, window: Window) -> Result<(), String> {
             .map_err(|e| e.to_string())?;
 
         sink.append(source);
+        sink.set_volume(volume);
 
         let sink = Arc::new(sink);
 

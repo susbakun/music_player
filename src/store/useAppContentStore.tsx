@@ -74,6 +74,7 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
           set({isLoading: false})
         } catch (err: unknown) {
           await error(err as string)
+          
           toast.error("couldn't read the path")
 
           set({isLoading: false})
@@ -84,7 +85,7 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
 
       // player
       playSong: async (song) => {
-        const { songs, queue } = get()
+        const { songs, queue, master_volume } = get()
         
         const updatedSongs = songs.map((s) => {
           if (s.song_name === song.song_name) {
@@ -107,10 +108,16 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
         set({ queue: updatedQueue })
         
         try {
-          await invoke("play_song", { song_path: song.song_path });
+          await invoke("play_song", { 
+            song_path: song.song_path, 
+            volume: master_volume 
+          });
+
           info("played the song successfully")
+
         } catch (err: unknown) {
           error(err as string)
+
           toast.error("couldn't play the song")
         }
       },
@@ -130,9 +137,12 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
 
         try {
           await invoke("pause_song", { song_path: song.song_path });
+
           info("paused the song successfully")
+
         } catch (err: unknown) {
           await error(err as string)
+
           toast.error("coudn't pause the song")
         }
       },
@@ -181,8 +191,10 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
       getSongPosition: async () => {
         try {
           return await invoke<number>("get_song_position");
+
         } catch (err: unknown) {
           await error(err as string)
+
           toast.error("couldn't get the song position")
         }
 
@@ -192,9 +204,12 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
         set({master_volume: volume})
         try {
           await invoke("change_master_volume", { volume: volume })
+
           info("changed master volume successfully")
+
         } catch (err: unknown) {
           await error(err as string)
+
           toast.error("couldn't change the master volume")
         }
       },
@@ -202,9 +217,11 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
       setSongPosition: async (position) => {
         try {
           await invoke("change_song_position", { position })
+
           info("changed song position successfully")
       } catch (err: unknown) {
           await error(err as string)
+
           toast.error("failed to change the song position")
       }
       },
