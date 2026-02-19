@@ -27,6 +27,7 @@ pub fn read_songs(dir: String) -> Vec<ReadSong> {
             SUPPORTED_FORMATS.contains(&file_extenstion)
         })
         .map(ReadSong::from_file_entry)
+        .map(|res| res.expect("couldn't create the entry"))
         .collect()
 }
 
