@@ -19,12 +19,14 @@ export const VolumeBar = () => {
     const handleMouseOnBar = (e: MouseEvent<HTMLDivElement>) => {
         const bar = e.currentTarget
         const rect = bar.getBoundingClientRect()
-        const position = Math.max(0, (e.clientX - rect.left))
+        let position = Math.max(0, (e.clientX - rect.left))
 
         setPopupPosition(position)
 
         let fraction = position / rect.width;
         fraction = Math.ceil(fraction * 100);
+        fraction = Math.min(fraction, 100)
+        
         setHoveredVolume(fraction)
     }
 
