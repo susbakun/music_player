@@ -52,16 +52,15 @@ pub fn play_song(song_path: String, volume: f32, window: Window) -> Result<(), S
         let song_name_string = song_name.to_string_lossy()
             .to_string();
 
-        state.current_song_name
-        .as_ref()
-        .is_some_and(|current_song_name| *current_song_name == song_name_string)
-        .then(|| {
-            match &state.sink {
-                Some(sink) => sink.play(),
-                _ => (),
+        if state.current_song_name
+            .as_ref()
+            .is_some_and(|current_song_name| *current_song_name == song_name_string) {
+                match &state.sink {
+                    Some(sink) => sink.play(),
+                    _ => (),
+                }
+                return Ok(());
             }
-            return;
-        });
 
         let stream_handle =
             OutputStreamBuilder::open_default_stream()

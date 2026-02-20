@@ -30,6 +30,7 @@ type AppContentActions = {
     setSongPosition: (position: number) => Promise<void>;
     getPlayPauseButton: (song: SongType, is_player?: boolean) => React.JSX.Element;
     togglePlay: (song: SongType) => void;
+    muteVolume: () => void;
     addToQueue: (song: SongType) => void,
     removeFromQueue: (song: SongType) => void,
     isSongInQueue: (song: SongType) => boolean
@@ -260,6 +261,12 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
         } else {
           playSong(song);
         }
+      },
+
+      muteVolume: () => {
+        const { setVolume } = get()
+
+        setVolume(0.0)
       },
 
       // queue

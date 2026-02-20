@@ -5,6 +5,7 @@ import { Player } from "./Player";
 import { useAppContentStore } from "@/store/useAppContentStore";
 import { CustomLoader } from "./Custom/CustomLoader";
 import { Toaster } from "react-hot-toast";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 function RootLayout({ children, ...props }: ComponentProps<"main">) {
   return <main {...props}>{children}</main>;
@@ -62,6 +63,8 @@ function AppContent() {
   const getPlayPauseButton = useAppContentStore((s) => s.getPlayPauseButton);
   const selectDirectory = useAppContentStore((s) => s.selectDirectory)
   const getSongs = useAppContentStore((s) => s.getSongs)
+
+  useKeyboardShortcuts()
 
   const specifyDirectory = (force?: boolean) => {
     selectDirectory(force).then((dir) => {

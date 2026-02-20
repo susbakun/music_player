@@ -1,6 +1,6 @@
 import { useAppContentStore } from '@/store/useAppContentStore'
 import { MouseEvent, useState } from 'react'
-import { MdVolumeUp } from 'react-icons/md'
+import { MdVolumeMute, MdVolumeUp } from 'react-icons/md'
 import { Bar } from './Bar'
 
 export const VolumeBar = () => {
@@ -9,6 +9,10 @@ export const VolumeBar = () => {
 
     const volume = useAppContentStore((s) => s.master_volume)
     const setVolume = useAppContentStore((s) => s.setVolume)
+    const muteVolume = useAppContentStore((s) => s.muteVolume)
+
+    const is_mute = volume === 0.0;
+
 
     const formatted_hovered_volume = hoveredVolume ? `${hoveredVolume}%` : null
 
@@ -37,8 +41,13 @@ export const VolumeBar = () => {
         className="flex items-center gap-2 min-w-[180px] max-w-[30%]
         justify-end shrink-0"
         >
-            <button className="text-white/70 hover:text-white transition-colors">
+            <button
+                onClick={muteVolume}
+                className="text-white/70 hover:text-white transition-colors">
+                {is_mute ? 
+                <MdVolumeMute className="w-5 h-5" /> : 
                 <MdVolumeUp className="w-5 h-5" />
+                }
             </button>
             <Bar
                 minValue={0}
