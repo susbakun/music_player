@@ -12,6 +12,8 @@ A music player written in Tauri, React and Rust.
 - You can change the position of the song.
 - Queue/Dequeue songs and see them in queue page.
 - Changing the directory via menu (Cmd/Crtl + D).
+- Shortcuts (`Space` for pause and `m` for mute)
+- Shuffle and Repeat buttons
 
 ## TODOS
 - [ ] Playlists
