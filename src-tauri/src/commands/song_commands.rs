@@ -38,7 +38,12 @@ pub fn read_songs(dir: String) -> Result<Vec<ReadSong>, String> {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-pub fn play_song(song_path: String, volume: f32, window: Window) -> Result<(), String> {
+pub fn play_song(
+    song_path: String, 
+    volume: f32, 
+    repeat: bool, 
+    window: Window
+) -> Result<(), String> {
     thread::spawn(move || -> Result<(), String> {
         let app_handle = window.app_handle();
         let state = app_handle.state::<Mutex<AppData>>();
@@ -54,7 +59,10 @@ pub fn play_song(song_path: String, volume: f32, window: Window) -> Result<(), S
 
         if state.current_song_name
             .as_ref()
-            .is_some_and(|current_song_name| *current_song_name == song_name_string) {
+            .is_some_and(|current_song_name| *current_song_name == song_name_string)
+            .then(|| !repeat)
+            .is_some_and(|res| res)
+            {
                 match &state.sink {
                     Some(sink) => sink.play(),
                     _ => (),

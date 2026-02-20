@@ -14,7 +14,9 @@ type AppContentState = {
     currentSong: SongType | null;
     queue: SongType[];
     isLoading: boolean,
-    master_volume: number
+    master_volume: number;
+    shuffle: boolean;
+    repeat: boolean;
 };
 
 type AppContentActions = {
@@ -29,7 +31,10 @@ type AppContentActions = {
     setVolume: (volume: number) => Promise<void>,
     setSongPosition: (position: number) => Promise<void>;
     getPlayPauseButton: (song: SongType, is_player?: boolean) => React.JSX.Element;
+    toggleRepeat: () => void;
+    toggleShuffle: () => void;
     togglePlay: (song: SongType) => void;
+    processQueue: () => void;
     muteVolume: () => void;
     addToQueue: (song: SongType) => void,
     removeFromQueue: (song: SongType) => void,
@@ -43,6 +48,8 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
       queue: [],
       isLoading: false,
       master_volume: 1.0,
+      shuffle: false,
+      repeat: false,
 
       // tracks
       setSongs: (songs) => set({ songs }),
@@ -86,20 +93,20 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
 
       // player
       playSong: async (song) => {
-        const { songs, queue, master_volume } = get()
+        const { songs, queue, master_volume, repeat } = get()
         
         const updatedSongs = songs.map((s) => {
           if (s.song_name === song.song_name) {
             return {...s, is_playing: true}
           }
-          return s
+          return {...s, is_playing: false}
         })
 
         const updatedQueue = queue.map((s) => {
           if (s.song_name === song.song_name) {
             return {...s, is_playing: true}
           }
-          return s
+          return {...s, is_playing: false}
         })
 
         const currentSong: SongType = {...song, is_playing: true}
@@ -111,7 +118,8 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
         try {
           await invoke("play_song", { 
             song_path: song.song_path, 
-            volume: master_volume 
+            volume: master_volume,
+            repeat
           });
 
           info("played the song successfully")
@@ -149,25 +157,41 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
       },
 
       playNext: () => {
-        const { currentSong, songs, queue, playSong } = get();
+        const { 
+          currentSong, 
+          songs, 
+          queue, 
+          playSong,
+          shuffle,
+          processQueue,
+          repeat } = get();
 
         // if queue wasn't empty then pick one from there
         if (queue.length > 0) {
-          const nextSong = queue.shift()!
-          playSong(nextSong)
+          processQueue()
           return
         }
 
         if (!currentSong) return;
 
-        const currentSongIndex = songs.findIndex
-          ((s) => s.song_name === currentSong.song_name)
+        let nextSong: SongType;
 
-        const lastSongIdx = songs.length - 1;
-        const nextSong =
-          currentSongIndex === lastSongIdx ? 
-          songs[0] : 
-          songs[currentSongIndex + 1];
+        if (repeat) {
+          nextSong = currentSong
+        } else if (shuffle) {
+          const length = songs.length
+          nextSong = songs[Math.floor(Math.random() * length)]
+        } else {
+          const currentSongIndex = songs.findIndex
+            ((s) => s.song_name === currentSong.song_name)
+  
+          const lastSongIdx = songs.length - 1;
+          nextSong =
+            currentSongIndex === lastSongIdx ? 
+            songs[0] : 
+            songs[currentSongIndex + 1];
+        }
+
 
         playSong(nextSong);
       },
@@ -189,7 +213,7 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
         playSong(prevSong);
       },
 
-      getSongPosition: async () => {
+      getSongPosition: async () => {;
         try {
           return await invoke<number>("get_song_position");
 
@@ -227,7 +251,7 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
       }
       },
 
-      getPlayPauseButton: (song, is_player?): React.JSX.Element => {
+      getPlayPauseButton: (song, is_player): React.JSX.Element => {
         const { pauseSong, playSong, currentSong } = get();
         const btnClass = is_player ? "bg-black/80 rounded-full px-2 py-2" : "";
 
@@ -263,6 +287,18 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
         }
       },
 
+      toggleRepeat() {
+        const { repeat } = get()
+
+        set({repeat: !repeat})
+      },
+
+      toggleShuffle() {
+        const { shuffle } = get()
+
+        set({shuffle: !shuffle})
+      },
+
       muteVolume: () => {
         const { setVolume } = get()
 
@@ -270,6 +306,34 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
       },
 
       // queue
+      processQueue: () => {
+        const {
+          queue, 
+          removeFromQueue,
+          shuffle, 
+          repeat, 
+          currentSong,
+          playSong
+        } = get()
+
+        if (!currentSong) return
+
+        let nextSong: SongType;
+
+        if (repeat) {
+          nextSong = currentSong
+        } else if (shuffle) {
+          const length = queue.length
+          nextSong = queue[Math.floor(Math.random() * length)]
+        } else {
+          nextSong = queue.shift()!
+        }
+
+        removeFromQueue(nextSong)
+
+        playSong(nextSong)        
+      },
+
       addToQueue: (song) => {
         let { queue } = get();
         queue.push({...song})

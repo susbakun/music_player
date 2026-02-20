@@ -2,6 +2,7 @@ import { Menu, MenuItemOptions } from "@tauri-apps/api/menu"
 import { SongType } from "@/shared/types"
 import { JSX, MouseEvent } from "react"
 import { useAppContentStore } from "@/store/useAppContentStore"
+import { twMerge } from "tailwind-merge"
 
 type SongProps = {
     song: SongType,
@@ -20,6 +21,7 @@ export const Song = ({
     const addToQueue = useAppContentStore((s) => s.addToQueue)
     const removeFromQueue = useAppContentStore((s) => s.removeFromQueue)
     const isSongInQueue = useAppContentStore((s) => s.isSongInQueue)
+    const currentSong = useAppContentStore((s) => s.currentSong)
 
     const handleContextMenu = async (event: MouseEvent) => {
         event.preventDefault()
@@ -43,12 +45,19 @@ export const Song = ({
         menu.popup()
     }
 
+    const isItCurrentSong = () => {
+        return currentSong && 
+            currentSong.song_name === song.song_name
+    }
+
 
     return (
         <li key={song.song_name}
             onContextMenu={handleContextMenu}
-            className="flex items-center justify-between
-            hover:bg-white/5 rounded-xl px-2 py-1"
+            className={twMerge(`flex items-center justify-between
+            hover:bg-white/5 rounded-xl px-2 py-1`,
+            `${isItCurrentSong() ? "bg-white/10 hover:bg-white/10" : ""}`
+        )}
             onDoubleClick={() => togglePlay(song)}>
             <div className="flex gap-2 items-center">
                 <p className="text-sm text-white/50">{number}.</p>

@@ -59,8 +59,6 @@ function AppContent() {
   const currentSong = useAppContentStore((s) => s.currentSong);
   const isLoading = useAppContentStore((s) => s.isLoading);
   const playNext = useAppContentStore((s) => s.playNext);
-  const playPrev = useAppContentStore((s) => s.playPrev);
-  const getPlayPauseButton = useAppContentStore((s) => s.getPlayPauseButton);
   const selectDirectory = useAppContentStore((s) => s.selectDirectory)
   const getSongs = useAppContentStore((s) => s.getSongs)
 
@@ -96,13 +94,9 @@ function AppContent() {
   }, [currentSong, playNext]);
 
   return (
-    <div className="h-full flex flex-col w-full">
+    <div className="h-full flex flex-col w-full overflow-hidden">
       {isLoading ? <CustomLoader /> : <Outlet />}
-      <Player
-        playNext={playNext}
-        playPrev={playPrev}
-        getPlayPauseButton={getPlayPauseButton}
-      />
+      <Player />
       <Toaster />
     </div>
   );
