@@ -35,7 +35,7 @@ pub fn read_songs(dir: String) -> Result<Vec<ReadSong>, String> {
 
 
 #[tauri::command(rename_all = "snake_case")]
-pub fn get_song_position(window: Window) -> Result<u64, String> {
+pub fn get_song_position(window: Window) -> Result<usize, String> {
     let app_handle = window.app_handle();
     let state = app_handle.state::<Mutex<AppData>>();
 
@@ -44,5 +44,5 @@ pub fn get_song_position(window: Window) -> Result<u64, String> {
 
     let Some(ref sink) = state.sink else {return Ok(0)};
 
-    Ok(sink.get_pos().as_secs())
+    Ok(sink.get_pos().as_secs() as usize)
 }
