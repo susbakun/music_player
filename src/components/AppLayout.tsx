@@ -6,6 +6,9 @@ import { useAppContentStore } from "@/store/useAppContentStore";
 import { CustomLoader } from "./Custom/CustomLoader";
 import { Toaster } from "react-hot-toast";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { invoke } from "@tauri-apps/api/core";
+import { DEFAULT_PATH } from "@/shared/constants";
+import { info } from "@tauri-apps/plugin-log";
 
 function RootLayout({ children, ...props }: ComponentProps<"main">) {
   return <main {...props}>{children}</main>;
@@ -61,6 +64,7 @@ function AppContent() {
   const playNext = useAppContentStore((s) => s.playNext);
   const selectDirectory = useAppContentStore((s) => s.selectDirectory)
   const getSongs = useAppContentStore((s) => s.getSongs)
+  const getWorkingDirectory = useAppContentStore((s) => s.getWorkingDirectory)
 
   useKeyboardShortcuts()
 
@@ -71,14 +75,24 @@ function AppContent() {
   }
 
   useEffect(() => {
-    const unlisten = listen<string>("change-directory", () => {
+    const unlistenChooseDirectory = listen<string>("choose-directory", () => {
       specifyDirectory(true)
+    })
+
+    const unlistenDirectoryChanged = listen("directory-changed", () => {
+      const workingDir = getWorkingDirectory()
+      getSongs(workingDir)
     })
 
     specifyDirectory()
 
+    invoke("watch_dir", {path: DEFAULT_PATH}).then((e) => {
+      info(e as string)
+    })
+
     return () => {
-      unlisten.then((fn) => fn())
+      unlistenChooseDirectory.then((fn) => fn())
+      unlistenDirectoryChanged.then((fn) => fn())
     }
   }, []);
 

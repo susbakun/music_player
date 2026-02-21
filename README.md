@@ -14,6 +14,7 @@ A music player written in Tauri, React and Rust.
 - Changing the directory via menu (Cmd/Crtl + D).
 - Shortcuts (`Space` for pause and `m` for mute)
 - Shuffle and Repeat buttons
+- Watching working directory for changes.
 
 ## TODOS
 - [ ] Playlists

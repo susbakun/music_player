@@ -23,6 +23,7 @@ type AppContentActions = {
     setSongs: (songs: SongType[]) => void;
     selectDirectory: (force?: boolean) => Promise<string>;
     getSongs: (dir: string) => Promise<void>;
+    getWorkingDirectory: () => string;
     playSong: (song: SongType) => Promise<void>;
     pauseSong: (song: SongType) => Promise<void>;
     playNext: () => void;
@@ -89,6 +90,10 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
           localStorage.setItem("selected-dir", "")
         }
 
+      },
+
+      getWorkingDirectory() {
+        return localStorage.getItem("selected-dir") || DEFAULT_PATH
       },
 
       // player
