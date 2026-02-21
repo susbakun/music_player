@@ -51,6 +51,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             read_songs,
+            watch_dir,
             play_song,
             pause_song,
             get_song_position,

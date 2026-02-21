@@ -1,6 +1,7 @@
-mod app_commands;
-mod song_commands;
+mod app;
+mod read;
+mod control;
 
-pub use song_commands::*;
-
-pub use app_commands::*;
+pub use app::*;
+pub use read::*;
+pub use control::*;
