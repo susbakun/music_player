@@ -1,5 +1,4 @@
-use rodio::Sink;
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 use tauri::Manager;
 
 #[cfg(target_os = "macos")]
@@ -10,11 +9,9 @@ mod prelude;
 
 pub use commands::*;
 
-#[derive(Default)]
-struct AppData {
-    pub sink: Option<Arc<Sink>>,
-    pub current_song_name: Option<String>,
-}
+use crate::prelude::AppData;
+
+
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -38,7 +35,13 @@ pub fn run() {
             let menu = build_menu(app.handle())?;
             app.set_menu(menu)?;
 
-            app.manage(Mutex::new(AppData::default()));
+            // reading db
+            let db_conn = setup_db()?;
+
+            // adding state
+            app.manage(Mutex::new(
+                AppData::new(db_conn)
+            ));
             Ok(())
         })
         .on_menu_event(|app, event| {
@@ -56,7 +59,9 @@ pub fn run() {
             pause_song,
             get_song_position,
             change_song_position,
-            change_master_volume
+            change_master_volume,
+            get_playlists,
+            create_playlist,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

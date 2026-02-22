@@ -1,4 +1,5 @@
 import { FileFormat } from "./types";
+import { audioDir } from "@tauri-apps/api/path"
 
 export const ICON_SIZE = 32
 
@@ -9,4 +10,4 @@ export const FORMAT_OPTIONS: ReadonlyArray<{ value: FileFormat; text: string }> 
     {value: "flac", text: "FLAC"}
 ]
 
-export const DEFAULT_PATH = "/Users/amir/Downloads/"
+export const DEFAULT_PATH = audioDir()

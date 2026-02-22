@@ -1,4 +1,4 @@
-use std::{fs::File, io::Read};
+use std::{fs::File, io::Read, sync::Arc};
 
 use lofty::file::TaggedFileExt;
 use lofty::read_from_path;
@@ -6,7 +6,8 @@ use lofty::tag::Accessor;
 
 use anyhow::{Result, anyhow};
 
-use rodio::{Decoder, Source};
+use rodio::{Decoder, Sink, Source};
+use rusqlite::Connection;
 use walkdir::DirEntry;
 #[derive(serde::Serialize)]
 pub struct ReadSong {
@@ -80,5 +81,22 @@ impl ReadSong {
         }
 
         Ok(String::from("Artist"))
+    }
+}
+
+
+pub struct AppData {
+    pub sink: Option<Arc<Sink>>,
+    pub current_song_name: Option<String>,
+    pub db_conn: Connection
+}
+
+impl AppData {
+    pub fn new(db_conn: Connection) -> Self {
+        Self {
+            sink: None,
+            current_song_name: None,
+            db_conn
+        }
     }
 }

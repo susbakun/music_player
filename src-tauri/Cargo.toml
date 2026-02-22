@@ -30,6 +30,8 @@ lofty = "0.23.2"
 tauri-plugin-log = "2"
 anyhow = "1.0.101"
 notify = "8.2.0"
+rusqlite = { version = "0.38.0", features = ["bundled"] }
+uuid = {version = "1.21.0", features = ["v4"] }
 
 [profile.dev]
 incremental = true

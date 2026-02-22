@@ -1,10 +1,14 @@
+use std::fs::OpenOptions;
 use std::path::Path;
 use std::sync::mpsc;
 use std::thread;
 
 use notify::{RecursiveMode, Watcher};
+use rusqlite::Connection;
 use tauri::menu::{Menu, MenuItem, Submenu};
 use tauri::{AppHandle, Emitter, Manager, Wry};
+
+use crate::prelude::*;
 
 pub fn build_menu(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     let menu = Menu::default(app)?;
@@ -32,6 +36,64 @@ pub fn change_directory(app: &AppHandle) {
         .expect("failed to change directory")
 }
 
+pub fn setup_db() -> Result<Connection, Box<dyn std::error::Error>> {
+    OpenOptions::new()
+        .create(true)
+        .write(true)
+        .open(DB_PATH)?;
+
+    let conn = Connection::open(DB_PATH)?;
+
+    let playlists_exists = conn.table_exists(
+        Some("main"), 
+        "playlists")?;
+
+    if !playlists_exists {
+        conn.execute(
+            "CREATE TABLE playlists(
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL
+                )",
+            ()
+        )?;
+    }
+
+    let track_exists = conn.table_exists(
+        Some("main"), 
+        "track")?;
+
+    if !track_exists {
+        conn.execute(
+            "CREATE TABLE track(
+                song_name TEXT PRIMARY KEY,
+                song_path TEXT NOT NULL,
+                duration INTEGER,
+                artist TEXT,
+                icon BLOB
+                )",
+            ()
+        )?;
+    }
+
+    let playlist_tracks_exists = conn.table_exists(
+        Some("main"), 
+        "playlist_tracks")?;
+
+    if !playlist_tracks_exists {
+        conn.execute(
+            "CREATE TABLE playlist_tracks(
+                playlist_id INTEGER,
+                song_name TEXT NOT NULL,
+                PRIMARY KEY (playlist_id, song_name),
+                FOREIGN KEY (playlist_id) REFERENCES playlists(id),
+                FOREIGN KEY (song_name) REFERENCES track(song_name)
+                )",
+            ()
+        )?;
+    }
+
+    Ok(conn)
+}
 
 #[tauri::command(rename_all = "snake_case")]
 pub fn watch_dir(path: String, window: AppHandle) -> Result<(), String> {

@@ -1,7 +1,7 @@
 import { FORMAT_OPTIONS } from "@/shared/constants";
 import { FileFormat } from "@/shared/types";
 import { ChangeEvent } from "react";
-import { CustomSelect } from "@/components/Custom/CustomSelect";
+import { CustomSelect } from "@/components";
 
 type SearchFilterBarProps = {
   searchQuery: string;

@@ -1,7 +1,7 @@
-import "./App.css";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppContent, AppSideBar, RootLayout } from "@/components";
 import { TracksPage, QueuePage } from "@/pages";
+import "./App.css";
 
 function App() {
   return (
@@ -11,7 +11,7 @@ function App() {
           path="/"
           element={
             <RootLayout className="flex h-screen w-screen gap-4">
-              <AppSideBar />
+              <AppSideBar/>
               <AppContent />
             </RootLayout>
           }

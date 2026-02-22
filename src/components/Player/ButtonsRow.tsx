@@ -1,7 +1,8 @@
 import { SongType } from '@/shared/types';
 import { useAppContentStore } from '@/store/useAppContentStore';
-import { MdOutlineRepeat, MdOutlineRepeatOn, MdOutlineShuffle, MdOutlineShuffleOn, MdOutlineSkipNext, MdOutlineSkipPrevious } from 'react-icons/md'
-import { CustomActionButton } from '../Custom/CustomActionButton';
+import { MdOutlineRepeat, MdOutlineRepeatOn, MdOutlineShuffle,
+    MdOutlineShuffleOn, MdOutlineSkipNext, MdOutlineSkipPrevious } from 'react-icons/md'
+import { CustomActionButton } from '@/components';
 
 type ButtonsRowProps = {
     currentSong: SongType

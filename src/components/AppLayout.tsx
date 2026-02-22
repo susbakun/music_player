@@ -1,13 +1,11 @@
-import { ComponentProps, useEffect } from "react";
+import { ComponentProps, useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { listen } from "@tauri-apps/api/event";
-import { Player } from "./Player";
+import { Player, CustomLoader, CreatePlaylistModal } from "@/components";
 import { useAppContentStore } from "@/store/useAppContentStore";
-import { CustomLoader } from "./Custom/CustomLoader";
 import { Toaster } from "react-hot-toast";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { invoke } from "@tauri-apps/api/core";
-import { DEFAULT_PATH } from "@/shared/constants";
 import { info } from "@tauri-apps/plugin-log";
 
 function RootLayout({ children, ...props }: ComponentProps<"main">) {
@@ -15,8 +13,20 @@ function RootLayout({ children, ...props }: ComponentProps<"main">) {
 }
 
 function AppSideBar() {
+  const [createPlaylistModalOpen, setCreatePlaylistModalOpen] = useState(false);
+  const [playlists, setPlaylists] = useState<string[]>([])
+
+  useEffect(() => {
+    invoke<string[]>("get_playlists").then((res) => {
+      setPlaylists(res)
+    }).catch((e) => {
+      info(e as string)
+    })
+  }, [])
+
   return (
-    <aside className="border-r border-r-white/50 w-[25%] flex flex-col gap-20 px-4 py-8">
+    <>
+      <aside className="border-r border-r-white/50 w-[25%] flex flex-col gap-20 px-4 py-8">
       <section className="flex flex-col items-start gap-4">
         <h2 className="font-bold text-lg">Library</h2>
         <ul className="flex flex-col items-start gap-2 font-light text-sm w-full">
@@ -42,19 +52,33 @@ function AppSideBar() {
       </section>
       <section className="flex flex-col items-start gap-4 font-light text-sm">
         <h2 className="font-bold text-lg">Playlists</h2>
-        <ul className="flex flex-col items-start gap-2 font-light text-sm">
-        <NavLink
-            to="/playlist"
-            className={({ isActive }) =>
-              `w-full text-start rounded-md px-2 py-1 
-              ${isActive ? "bg-white/5 font-bold" : ""}`
-            }
+        <ul className="flex flex-col items-start gap-2 font-light text-sm w-full">
+          <button
+            type="button"
+            onClick={() => setCreatePlaylistModalOpen(true)}
+            className="w-full text-start rounded-md px-2 py-1 hover:bg-white/5"
           >
             Create...
-          </NavLink>
+          </button>
+          {
+            playlists.map((playlist) => (
+              <button
+                type="button"
+                onClick={() => setCreatePlaylistModalOpen(true)}
+                className="w-full text-start rounded-md px-2 py-1 hover:bg-white/5"
+              >
+                {playlist}
+              </button>
+            ))
+          }
         </ul>
       </section>
     </aside>
+    <CreatePlaylistModal
+        isOpen={createPlaylistModalOpen}
+        onClose={() => setCreatePlaylistModalOpen(false)}
+      />
+    </>
   );
 }
 
@@ -74,21 +98,27 @@ function AppContent() {
     });
   }
 
+  const watchWorkingDir = async () => {
+    const workingDir = await getWorkingDirectory()
+    
+    invoke("watch_dir", {path: workingDir}).then((e) => {
+      info(e as string)
+    })
+  }
+
   useEffect(() => {
     const unlistenChooseDirectory = listen<string>("choose-directory", () => {
       specifyDirectory(true)
     })
 
-    const unlistenDirectoryChanged = listen("directory-changed", () => {
-      const workingDir = getWorkingDirectory()
+    const unlistenDirectoryChanged = listen("directory-changed", async () => {
+      const workingDir = await getWorkingDirectory()
       getSongs(workingDir)
     })
 
     specifyDirectory()
 
-    invoke("watch_dir", {path: DEFAULT_PATH}).then((e) => {
-      info(e as string)
-    })
+    watchWorkingDir()
 
     return () => {
       unlistenChooseDirectory.then((fn) => fn())

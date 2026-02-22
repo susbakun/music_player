@@ -23,7 +23,7 @@ type AppContentActions = {
     setSongs: (songs: SongType[]) => void;
     selectDirectory: (force?: boolean) => Promise<string>;
     getSongs: (dir: string) => Promise<void>;
-    getWorkingDirectory: () => string;
+    getWorkingDirectory: () => Promise<string>;
     playSong: (song: SongType) => Promise<void>;
     pauseSong: (song: SongType) => Promise<void>;
     playNext: () => void;
@@ -60,13 +60,16 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
         if (selectedDir && !force) {
           return selectedDir;
         }
+
+        const defaultPath = await DEFAULT_PATH
+
         selectedDir = await open({
           multiple: false,
           directory: true,
-          defaultPath: DEFAULT_PATH,
+          defaultPath,
           title: "choose directory to scan",
         });
-        selectedDir = selectedDir || DEFAULT_PATH;
+        selectedDir = selectedDir || defaultPath;
         localStorage.setItem("selected-dir", selectedDir);
         return selectedDir;
       },
@@ -92,8 +95,10 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
 
       },
 
-      getWorkingDirectory() {
-        return localStorage.getItem("selected-dir") || DEFAULT_PATH
+      getWorkingDirectory: async () => {
+        const defaultPath = await DEFAULT_PATH
+
+        return localStorage.getItem("selected-dir") || defaultPath
       },
 
       // player
