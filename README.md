@@ -2,8 +2,7 @@
 
 Desktop music player built with Tauri 2, React and Rust.
 
-<!-- Screenshot placeholder -->
-![Music Player](./dist/screenshot.png)
+<img width="1025" height="679" alt="screenshot" src="https://github.com/user-attachments/assets/e172025b-0235-40b9-be30-8c356f47fab4" />
 
 ## Commands
 
