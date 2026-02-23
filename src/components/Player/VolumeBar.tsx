@@ -7,7 +7,7 @@ export const VolumeBar = () => {
     const [popupPosition, setPopupPosition] = useState<null | number>(null)
     const [hoveredVolume, setHoveredVolume] = useState<null | number>(null)
 
-    const volume = useAppContentStore((s) => s.master_volume)
+    const volume = useAppContentStore((s) => s.masterVolume)
     const setVolume = useAppContentStore((s) => s.setVolume)
     const muteVolume = useAppContentStore((s) => s.muteVolume)
 

@@ -100,3 +100,10 @@ impl AppData {
         }
     }
 }
+
+
+#[derive(serde::Serialize)]
+pub struct Playlist {
+    pub id: String,
+    pub name: String
+}

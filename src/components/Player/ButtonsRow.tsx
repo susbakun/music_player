@@ -8,7 +8,7 @@ type ButtonsRowProps = {
     currentSong: SongType
 }
 
-export const ButtonsRow = ({currentSong}: ButtonsRowProps) => {
+export const ButtonsRow = ({ currentSong }: ButtonsRowProps) => {
     const playNext = useAppContentStore((s) => s.playNext);
     const playPrev = useAppContentStore((s) => s.playPrev);
     const getPlayPauseButton = useAppContentStore((s) => s.getPlayPauseButton);
@@ -31,13 +31,13 @@ export const ButtonsRow = ({currentSong}: ButtonsRowProps) => {
                 }
             </CustomActionButton>
             <CustomActionButton
-                handleClick={playPrev}
+                handleClick={() => playPrev()}
             >
                 <MdOutlineSkipPrevious className="w-5 h-5" />
             </CustomActionButton>
             {getPlayPauseButton(currentSong, true)}
             <CustomActionButton
-                handleClick={playNext}
+                handleClick={() => playNext()}
             >
                 <MdOutlineSkipNext className="w-5 h-5" />
             </CustomActionButton>

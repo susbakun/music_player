@@ -1,20 +1,30 @@
-import { useState, FormEvent } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { CustomModal } from "@/components";
 import toast from "react-hot-toast";
 import { useAppContentStore } from "@/store/useAppContentStore";
-import { useNavigate } from "react-router-dom";
 
-type CreatePlaylistModalProps = {
+type EditPlaylistModalProps = {
   isOpen: boolean;
   onClose: () => void;
+  playlistId: string;
+  playlistName: string;
 };
 
-export function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProps) {
-  const [name, setName] = useState("");
+export function EditPlaylistModal({
+  isOpen,
+  onClose,
+  playlistId,
+  playlistName,
+}: EditPlaylistModalProps) {
+  const [name, setName] = useState(playlistName ?? "");
 
-  const navigate = useNavigate()
-  
-  const createPlaylist = useAppContentStore((s) => s.createPlaylist)
+  const editPlaylistName = useAppContentStore((s) => s.editPlaylistName);
+
+  useEffect(() => {
+    if (isOpen) {
+      setName(playlistName ?? "");
+    }
+  }, [isOpen, playlistName]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -23,20 +33,17 @@ export function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProp
       toast.error("Enter a playlist name");
       return;
     }
-    const playlistId = await createPlaylist(trimmed)
-    console.log(playlistId)
-    setName("");
-    navigate(`playlist/${playlistId}`)
+    await editPlaylistName(playlistId, trimmed);
     onClose();
   };
 
   const handleClose = () => {
-    setName("");
+    setName(playlistName ?? "");
     onClose();
   };
 
   return (
-    <CustomModal isOpen={isOpen} onClose={handleClose} title="New playlist">
+    <CustomModal isOpen={isOpen} onClose={handleClose} title="Edit playlist">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1.5 text-sm">
           <span className="text-white/70">Name</span>
@@ -64,10 +71,11 @@ export function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProp
             className="rounded-md px-3 py-2 text-sm bg-white/10 hover:bg-white/20
               font-medium transition-colors"
           >
-            Create
+            Save
           </button>
         </div>
       </form>
     </CustomModal>
   );
 }
+

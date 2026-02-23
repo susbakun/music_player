@@ -1,2 +1,3 @@
-export { TracksPage } from "./TracksPage";
-export { QueuePage } from "./QueuePage";
+export * from "./TracksPage";
+export * from "./QueuePage";
+export * from "./PlaylistPage"

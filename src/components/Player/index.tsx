@@ -5,7 +5,6 @@ import { VolumeBar } from "./VolumeBar";
 import { ButtonsRow } from "./ButtonsRow";
 import { useEffect, useState } from "react";
 
-
 export const Player = () => {
     const [progress, setProgress] = useState(0);
     const [iconUrl, setIconUrl] = useState<string | null>(null)
@@ -45,7 +44,7 @@ export const Player = () => {
     if (currentSong)
         return (
             <div className="h-[100px] flex bg-black/50 px-4 mr-4 
-            items-center justify-between rounded-xl">
+            items-center justify-between rounded-xl mt-auto">
                 <div className="flex items-center gap-3 min-w-[180px] max-w-[30%] shrink-0">
                     {iconUrl && (
                         <img
@@ -62,9 +61,7 @@ export const Player = () => {
                 </div>
 
                 <div className="flex-1 flex flex-col items-center justify-center gap-1 px-4">
-                    <ButtonsRow
-                        currentSong={currentSong}
-                    />
+                    <ButtonsRow currentSong={currentSong} />
                     <PlayerBar
                         duration={duration}
                         progress={progress}

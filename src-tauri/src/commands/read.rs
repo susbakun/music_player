@@ -7,7 +7,10 @@ use tauri::{Manager, Window};
 use walkdir::WalkDir;
 
 #[tauri::command(rename_all = "snake_case")]
-pub fn read_songs(dir: String) -> Result<Vec<ReadSong>, String> {
+pub fn read_songs(
+    dir: String, 
+    window: Window
+) -> Result<Vec<ReadSong>, String> {
     let path = PathBuf::from(&dir);
     let mut songs = vec![];
     let entries = WalkDir::new(&path).max_depth(4);
@@ -30,9 +33,53 @@ pub fn read_songs(dir: String) -> Result<Vec<ReadSong>, String> {
         }     
     }
 
+    add_tracks_to_db(&songs, window)?;
+
     Ok(songs)
 }
 
+
+fn add_tracks_to_db(
+    songs: &Vec<ReadSong>, 
+    window: Window
+) -> Result<(), String> {
+    let app_handle = window.app_handle();
+    let state = app_handle.state::<Mutex<AppData>>();
+
+    let state= state.lock()
+        .map_err(|e| e.to_string())?;
+
+    let db_conn = &state.db_conn;
+
+    songs.iter().try_for_each(|song| -> Result<(), String> {
+        let ReadSong {
+            song_name,
+            song_path,
+            duration,
+            artist,
+            icon,
+        } = song;
+
+        // Upsert: update in place so we don't DELETE the row (which would CASCADE
+        // and remove this song from all playlists).
+        db_conn
+            .execute(
+                "INSERT INTO track(song_name, song_path, duration, artist, icon)
+                    VALUES (?1, ?2, ?3, ?4, ?5)
+                    ON CONFLICT(song_name) DO UPDATE SET
+                    song_path = excluded.song_path,
+                    duration = excluded.duration,
+                    artist = excluded.artist,
+                    icon = excluded.icon
+                    ",
+                rusqlite::params![song_name, song_path, *duration as i64, artist, icon.as_slice()],
+            )
+            .map_err(|e| e.to_string())?;
+        Ok(())
+    })?;
+
+    Ok(())
+}
 
 #[tauri::command(rename_all = "snake_case")]
 pub fn get_song_position(window: Window) -> Result<usize, String> {

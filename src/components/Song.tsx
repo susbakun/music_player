@@ -1,4 +1,4 @@
-import { Menu, MenuItemOptions } from "@tauri-apps/api/menu"
+import { Menu, MenuItemOptions, PredefinedMenuItem } from "@tauri-apps/api/menu"
 import { SongType } from "@/shared/types"
 import { JSX, MouseEvent } from "react"
 import { useAppContentStore } from "@/store/useAppContentStore"
@@ -7,6 +7,7 @@ import { twMerge } from "tailwind-merge"
 type SongProps = {
     song: SongType,
     number: number,
+    playlistId?: string,
     togglePlay: (song: SongType) => void,
     getPlayPauseButton: (song: SongType, is_player?: boolean) 
         => JSX.Element
@@ -15,12 +16,14 @@ type SongProps = {
 export const Song = ({
     song,
     number,
+    playlistId,
     togglePlay,
     getPlayPauseButton
 }: SongProps) => {
     const addToQueue = useAppContentStore((s) => s.addToQueue)
     const removeFromQueue = useAppContentStore((s) => s.removeFromQueue)
     const isSongInQueue = useAppContentStore((s) => s.isSongInQueue)
+    const removeFromPlaylist = useAppContentStore((s) => s.removeFromPlaylist)
     const currentSong = useAppContentStore((s) => s.currentSong)
 
     const handleContextMenu = async (event: MouseEvent) => {
@@ -41,7 +44,22 @@ export const Song = ({
             action: () => removeFromQueue(song),
         }
 
-        const menu = await Menu.new({ items: [option1, option2] })
+        const option3: MenuItemOptions = {
+            id: "ctx_option3",
+            text: "Remove from playlist",
+            enabled: !!playlistId,
+            action: async () => await removeFromPlaylist(
+                playlistId!, 
+                song.song_name),
+        }
+
+        const separator = await PredefinedMenuItem.new({
+            text: 'separator-text',
+            item: 'Separator',
+        });
+
+        const menu = await Menu.new({ items: [option1, option2, separator, option3] })
+        
         menu.popup()
     }
 

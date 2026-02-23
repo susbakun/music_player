@@ -1,6 +1,6 @@
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppContent, AppSideBar, RootLayout } from "@/components";
-import { TracksPage, QueuePage } from "@/pages";
+import { TracksPage, QueuePage, PlaylistPage } from "@/pages";
 import "./App.css";
 
 function App() {
@@ -19,6 +19,7 @@ function App() {
           <Route index element={<Navigate to="/tracks" replace />} />
           <Route path="tracks" element={<TracksPage />} />
           <Route path="queue" element={<QueuePage />} />
+          <Route path="playlist/:id" element={<PlaylistPage />} />
         </Route>
       </Routes>
     </HashRouter>

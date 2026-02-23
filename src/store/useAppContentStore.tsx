@@ -2,7 +2,7 @@ import type React from "react";
 import { create } from "zustand";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import { ReadFileType, SongType } from "@/shared/types";
+import { PlaylistType, ReadFileType, SongType } from "@/shared/types";
 import { IoPlay, IoPause } from "react-icons/io5";
 import { error, info } from "@tauri-apps/plugin-log"
 import { DEFAULT_PATH } from "@/shared/constants";
@@ -14,9 +14,13 @@ type AppContentState = {
     currentSong: SongType | null;
     queue: SongType[];
     isLoading: boolean,
-    master_volume: number;
+    masterVolume: number;
     shuffle: boolean;
     repeat: boolean;
+    playlists: PlaylistType[];
+    playlistTracks: SongType[];
+    /** When true, next/prev use playlistTracks; when false, use songs (library). Set from layout based on route. */
+    usePlaylistTracksForPlayback: boolean;
 };
 
 type AppContentActions = {
@@ -24,10 +28,12 @@ type AppContentActions = {
     selectDirectory: (force?: boolean) => Promise<string>;
     getSongs: (dir: string) => Promise<void>;
     getWorkingDirectory: () => Promise<string>;
+    nullifyCurrentSong: () => void;
     playSong: (song: SongType) => Promise<void>;
     pauseSong: (song: SongType) => Promise<void>;
     playNext: () => void;
     playPrev: () => void;
+    setPlaylistForPlayback: (value: boolean) => void;
     getSongPosition: () => Promise<number | undefined>;
     setVolume: (volume: number) => Promise<void>,
     setSongPosition: (position: number) => Promise<void>;
@@ -39,7 +45,15 @@ type AppContentActions = {
     muteVolume: () => void;
     addToQueue: (song: SongType) => void,
     removeFromQueue: (song: SongType) => void,
-    isSongInQueue: (song: SongType) => boolean
+    isSongInQueue: (song: SongType) => boolean,
+    getPlaylists: () => Promise<void>,
+    getPlaylist: (id: string) => PlaylistType | undefined,
+    getPlaylistTracks: (id: string) => Promise<void>;
+    createPlaylist: (name: string) => Promise<string | undefined>;
+    editPlaylistName: (id: string, new_name: string) => Promise<void>;
+    deletePlaylist: (id: string) => Promise<void>;
+    addToPlaylist: (playlistId: string, songNames: string[]) => Promise<void>;
+    removeFromPlaylist: (playlistId: string, song_name: string) => Promise<void>;
 };
 
 export const useAppContentStore = create<AppContentState & AppContentActions>(
@@ -48,9 +62,14 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
       currentSong: null,
       queue: [],
       isLoading: false,
-      master_volume: 1.0,
+      masterVolume: 1.0,
       shuffle: false,
       repeat: false,
+      playlists: [],
+      playlistTracks: [],
+      usePlaylistTracksForPlayback: false,
+
+      setPlaylistForPlayback: (value) => set({ usePlaylistTracksForPlayback: value }),
 
       // tracks
       setSongs: (songs) => set({ songs }),
@@ -101,9 +120,13 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
         return localStorage.getItem("selected-dir") || defaultPath
       },
 
+      nullifyCurrentSong: () => {
+        set({ currentSong: null })
+      },
+
       // player
       playSong: async (song) => {
-        const { songs, queue, master_volume, repeat } = get()
+        const { songs, queue, masterVolume, repeat } = get()
         
         const updatedSongs = songs.map((s) => {
           if (s.song_name === song.song_name) {
@@ -128,7 +151,7 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
         try {
           await invoke("play_song", { 
             song_path: song.song_path, 
-            volume: master_volume,
+            volume: masterVolume,
             repeat
           });
 
@@ -174,7 +197,9 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
           playSong,
           shuffle,
           processQueue,
-          repeat } = get();
+          playlistTracks,
+          repeat,
+          usePlaylistTracksForPlayback } = get();
 
         // if queue wasn't empty then pick one from there
         if (queue.length > 0) {
@@ -186,20 +211,22 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
 
         let nextSong: SongType;
 
+        const source = usePlaylistTracksForPlayback ? playlistTracks : songs
+
         if (repeat) {
           nextSong = currentSong
         } else if (shuffle) {
-          const length = songs.length
-          nextSong = songs[Math.floor(Math.random() * length)]
+          const length = source.length
+          nextSong = source[Math.floor(Math.random() * length)]
         } else {
-          const currentSongIndex = songs.findIndex
+          const currentSongIndex = source.findIndex
             ((s) => s.song_name === currentSong.song_name)
   
-          const lastSongIdx = songs.length - 1;
+          const lastSongIdx = source.length - 1;
           nextSong =
             currentSongIndex === lastSongIdx ? 
-            songs[0] : 
-            songs[currentSongIndex + 1];
+            source[0] : 
+            source[currentSongIndex + 1];
         }
 
 
@@ -207,18 +234,20 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
       },
 
       playPrev: () => {
-        const { currentSong, songs, playSong } = get();
+        const { currentSong, songs, playSong, playlistTracks, usePlaylistTracksForPlayback } = get();
 
         if (!currentSong) return;
 
-        const currentSongIndex = songs.findIndex
+        const source = usePlaylistTracksForPlayback ? playlistTracks : songs
+
+        const currentSongIndex = source.findIndex
           ((s) => s.song_name === currentSong.song_name)
 
-        const lastSongIdx = songs.length - 1;
+        const lastSongIdx = source.length - 1;
         const prevSong =
           currentSongIndex === 0 ? 
-          songs[lastSongIdx] : 
-          songs[currentSongIndex - 1];
+          source[lastSongIdx] : 
+          source[currentSongIndex - 1];
 
         playSong(prevSong);
       },
@@ -236,7 +265,7 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
       },
 
       setVolume: async (volume) => {
-        set({master_volume: volume})
+        set({masterVolume: volume})
         try {
           await invoke("change_master_volume", { volume: volume })
 
@@ -365,6 +394,103 @@ export const useAppContentStore = create<AppContentState & AppContentActions>(
 
         return !!queue.find((queuedSong) => 
           queuedSong.song_name === song.song_name)
+      },
+
+      // playlist
+      getPlaylists: async () => {
+        try {
+          let playlists = await invoke<PlaylistType[]>("get_playlists")
+          set({ playlists })
+
+          info("retrieved playlists successfully")
+      } catch (err: unknown) {
+          await error(err as string)
+
+          toast.error("failed to retriev the playlists")
+      }
+      },
+
+      getPlaylist: (id) => {
+        const { playlists } = get()
+
+        return playlists.find((playlist) => playlist.id === id)
+      },
+
+      getPlaylistTracks: async (id) => {
+        try {
+          const res = await invoke<ReadFileType[]>("get_playlist_tracks", { playlist_id: id })
+          const tracks: SongType[] = res.map((track) => ({...track, is_playing: false}))
+
+          set({playlistTracks: tracks})
+
+          info("retrieved playlist tracks successfully")
+        } catch (e) {
+          await error(e as string)
+          toast.error("couldn't retrieve playlist tracks")
+        }
+      },
+
+      createPlaylist: async (name) => {
+        try {
+          const { getPlaylists } = get()
+          const playlistId = await invoke<string>("create_playlist", {playlist_name: name})
+          toast.success(`playlist ${name} created`)
+          await getPlaylists()
+          return playlistId
+        } catch (e) {
+          await error(e as string)
+          toast.error("Failed to add tracks to playlist")
+        }
+      },
+
+      editPlaylistName: async (id, new_name) => {
+        try {
+          const { getPlaylists } = get()
+          await invoke("edit_playlist_name", { playlist_id: id, new_name })
+          toast.success(`playlist's name updated to ${new_name}`)
+          await getPlaylists()
+        } catch (e) {
+          await error(e as string)
+          toast.error("Failed to update playlist name")
+        }
+      },
+
+      deletePlaylist: async (id) => {
+        try {
+          const { getPlaylists } = get()
+          await invoke("delete_playlist", { playlist_id: id })
+          toast.success(`playlist removed successfully`)
+          await getPlaylists()
+        } catch (e) {
+          await error(e as string)
+          toast.error("Failed to remove the playlist")
+        }
+      },
+
+      addToPlaylist: async (playlistId, songNames) => {
+        if (songNames.length === 0) return;
+        try {
+          const { getPlaylistTracks } = get()
+          await invoke("add_to_playlist", { playlist_id: playlistId, song_names: songNames })
+          toast.success(`Added ${songNames.length} track(s) to playlist`)
+          await getPlaylistTracks(playlistId)
+        } catch (e) {
+          await error(e as string)
+          toast.error("Failed to add tracks to playlist")
+        }
+      },
+
+      removeFromPlaylist: async (playlistId, song_name) => {
+        info(`${song_name}: ${playlistId}`)
+        try {
+          const { getPlaylistTracks } = get()
+          await invoke("remove_from_playlist", { playlist_id: playlistId, song_name })
+          await info(`removed song ${song_name} from playlist`)
+          await getPlaylistTracks(playlistId)
+        } catch (e) {
+          await error(e as string)
+          toast.error("Failed to remove track from playlist")
+        }
       },
     })
 );

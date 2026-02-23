@@ -36,7 +36,7 @@ pub fn run() {
             app.set_menu(menu)?;
 
             // reading db
-            let db_conn = setup_db()?;
+            let db_conn = setup_db(app.handle())?;
 
             // adding state
             app.manage(Mutex::new(
@@ -48,6 +48,7 @@ pub fn run() {
             let event_id = event.id().0.as_str();
             match event_id {
                 "change_directory_id" => change_directory(app.app_handle()),
+                "create_playlist_id" => send_create_playlist_message(app.app_handle()),
                 _ => {}
             }
         })
@@ -61,7 +62,12 @@ pub fn run() {
             change_song_position,
             change_master_volume,
             get_playlists,
+            get_playlist_tracks,
             create_playlist,
+            edit_playlist_name,
+            delete_playlist,
+            add_to_playlist,
+            remove_from_playlist,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

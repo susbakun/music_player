@@ -5,10 +5,8 @@ use std::thread;
 
 use notify::{RecursiveMode, Watcher};
 use rusqlite::Connection;
-use tauri::menu::{Menu, MenuItem, Submenu};
+use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::{AppHandle, Emitter, Manager, Wry};
-
-use crate::prelude::*;
 
 pub fn build_menu(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     let menu = Menu::default(app)?;
@@ -16,7 +14,10 @@ pub fn build_menu(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     // removing the default file submenu
     // and inserting our own submenu
     menu.remove_at(1)?;
-    let file_submenu = Submenu::new(app, "File", true)?;
+    let file_submenu = Submenu::new(
+        app, 
+        "File", 
+        true)?;
 
     file_submenu.append(&MenuItem::with_id(
         app,
@@ -25,6 +26,19 @@ pub fn build_menu(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
         true,
         Some("CmdOrCtrl+D"),
     )?)?;
+
+    file_submenu.append(&PredefinedMenuItem::separator(
+        app
+    )?)?;
+
+    file_submenu.append(&MenuItem::with_id(
+        app,
+        "create_playlist_id",
+        "Create Playlist",
+        true,
+        Some("")
+    )?)?;
+
 
     menu.insert(&file_submenu, 1)?;
 
@@ -36,13 +50,26 @@ pub fn change_directory(app: &AppHandle) {
         .expect("failed to change directory")
 }
 
-pub fn setup_db() -> Result<Connection, Box<dyn std::error::Error>> {
+pub fn send_create_playlist_message(app: &AppHandle) {
+    app.emit("create_playlist_on_menu", ())
+        .expect("failed to send create playlist message");
+}
+
+pub fn setup_db(app: &AppHandle<Wry>) -> Result<Connection, Box<dyn std::error::Error>> {
+    // resolve AppData path
+    let app_data = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("app data dir: {}", e))?;
+    std::fs::create_dir_all(&app_data)?;
+    let db_path = app_data.join("app.db");
+
     OpenOptions::new()
         .create(true)
         .write(true)
-        .open(DB_PATH)?;
+        .open(&db_path)?;
 
-    let conn = Connection::open(DB_PATH)?;
+    let conn = Connection::open(&db_path)?;
 
     let playlists_exists = conn.table_exists(
         Some("main"), 
@@ -67,9 +94,9 @@ pub fn setup_db() -> Result<Connection, Box<dyn std::error::Error>> {
             "CREATE TABLE track(
                 song_name TEXT PRIMARY KEY,
                 song_path TEXT NOT NULL,
-                duration INTEGER,
-                artist TEXT,
-                icon BLOB
+                duration INTEGER NOT NULL,
+                artist TEXT NOT NULL,
+                icon BLOB NOT NULL
                 )",
             ()
         )?;
@@ -82,11 +109,11 @@ pub fn setup_db() -> Result<Connection, Box<dyn std::error::Error>> {
     if !playlist_tracks_exists {
         conn.execute(
             "CREATE TABLE playlist_tracks(
-                playlist_id INTEGER,
+                playlist_id TEXT NOT NULL,
                 song_name TEXT NOT NULL,
                 PRIMARY KEY (playlist_id, song_name),
-                FOREIGN KEY (playlist_id) REFERENCES playlists(id),
-                FOREIGN KEY (song_name) REFERENCES track(song_name)
+                FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE,
+                FOREIGN KEY (song_name) REFERENCES track(song_name) ON DELETE CASCADE
                 )",
             ()
         )?;

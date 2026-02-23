@@ -11,3 +11,5 @@ export const FORMAT_OPTIONS: ReadonlyArray<{ value: FileFormat; text: string }> 
 ]
 
 export const DEFAULT_PATH = audioDir()
+
+export const playlistRouteRegExp = /\/playlist\/?/
