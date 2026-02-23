@@ -78,6 +78,30 @@ fn add_tracks_to_db(
         Ok(())
     })?;
 
+    // Remove tracks from DB that are no longer in the songs list
+    let song_names: Vec<&String> = songs.iter()
+        .map(|s| &s.song_name)
+        .collect();
+    
+    if !song_names.is_empty() {
+        let placeholders = song_names.iter()
+            .map(|_| "?")
+            .collect::<Vec<_>>()
+            .join(",");
+        
+        let query = format!(
+            "DELETE FROM track 
+            WHERE song_name NOT IN ({})", 
+            placeholders);
+        
+        let params: Vec<&dyn rusqlite::ToSql> = song_names.iter()
+            .map(|name| name as &dyn rusqlite::ToSql)
+            .collect();
+        
+        db_conn.execute(&query, params.as_slice())
+            .map_err(|e| e.to_string())?;
+    }
+
     Ok(())
 }
 
