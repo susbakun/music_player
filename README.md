@@ -1,20 +1,27 @@
 # Music Player
 
-A music player written in Tauri, React and Rust.
+Desktop music player built with Tauri 2, React and Rust.
+
+<!-- Screenshot placeholder -->
+![Music Player](./dist/screenshot.png)
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `npm run tauri dev` | Run in development |
+| `npm run tauri build` | Build for production |
+| `npm run dev` | Frontend only (Vite) |
 
 ## Features
-- Play/Pause song
-- Next/Prev buttons
-- Progress bar
-- Transparent window
-- Dialog for choosing the directory
-- Scanning a directory up to 4 subdirectories
-- You can change the position of the song.
-- Queue/Dequeue songs and see them in queue page.
-- Changing the directory via menu (Cmd/Crtl + D).
-- Shortcuts (`Space` for pause and `m` for mute)
-- Shuffle and Repeat buttons
-- Watching working directory for changes.
 
-## TODOS
-- [ ] Playlists
+- **Library:** Scan folder (up to 4 levels), play/pause, seek, next/prev, shuffle, repeat
+- **Queue:** Add/remove tracks, dedicated queue page
+- **Playlists:** Create, rename, delete; add/remove tracks; play from playlist context
+- **UI:** Transparent window (macOS), directory picker, keyboard shortcuts (e.g. Space, M for mute)
+- **Sync:** Watches working directory for changes
+
+## Technologies
+
+- **Frontend:** React 19, Vite, TypeScript, Tailwind CSS, Zustand, React Router
+- **Backend:** Tauri 2, Rust (rodio, lofty, rusqlite, notify), SQLite

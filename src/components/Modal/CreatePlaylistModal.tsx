@@ -24,7 +24,6 @@ export function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProp
       return;
     }
     const playlistId = await createPlaylist(trimmed)
-    console.log(playlistId)
     setName("");
     navigate(`playlist/${playlistId}`)
     onClose();
